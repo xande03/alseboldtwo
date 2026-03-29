@@ -1,13 +1,20 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 interface RequestPayload {
   prompt: string;
   creationMode?: string;
   imageBase64?: string;
+  useCache?: boolean;
 }
 
 console.info('generate-image function started');
+
+// Inicializar cliente Supabase
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Mapeamento de modos de criação para prompts otimizados
 const modePrompts: Record<string, string> = {
@@ -26,7 +33,7 @@ const modePrompts: Record<string, string> = {
 
 Deno.serve(async (req: Request) => {
   try {
-    const { prompt, creationMode = "livre", imageBase64 }: RequestPayload = await req.json();
+    const { prompt, creationMode = "livre", imageBase64, useCache = true }: RequestPayload = await req.json();
 
     if (!prompt && !imageBase64) {
       return new Response(
@@ -35,7 +42,51 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Generating image with:', { prompt, creationMode, hasImage: !!imageBase64 });
+    console.log('Generating image with:', { prompt, creationMode, hasImage: !!imageBase64, useCache });
+
+    // Verificar cache primeiro (se habilitado)
+    if (useCache && supabaseUrl && supabaseKey) {
+      try {
+        const { data: cachedImage, error: cacheError } = await supabase
+          .from('image_cache')
+          .select('image_url, storage_path, access_count')
+          .eq('prompt', prompt)
+          .eq('creation_mode', creationMode)
+          .single();
+
+        if (cachedImage && !cacheError) {
+          console.log('Cache hit! Returning cached image');
+          
+          // Atualizar contador de acesso
+          await supabase
+            .from('image_cache')
+            .update({ 
+              accessed_at: new Date().toISOString(),
+              access_count: cachedImage.access_count + 1
+            })
+            .eq('prompt', prompt)
+            .eq('creation_mode', creationMode);
+
+          return new Response(
+            JSON.stringify({ 
+              imageUrl: cachedImage.image_url,
+              cached: true,
+              accessCount: cachedImage.access_count + 1
+            }),
+            { 
+              status: 200,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Connection': 'keep-alive',
+                'X-Cache': 'HIT'
+              }
+            }
+          );
+        }
+      } catch (cacheCheckError) {
+        console.log('Cache check failed, continuing with generation:', cacheCheckError);
+      }
+    }
 
     // Construir prompt otimizado baseado no modo
     let finalPrompt = prompt;
@@ -43,12 +94,16 @@ Deno.serve(async (req: Request) => {
       finalPrompt = `${prompt}, ${modePrompts[creationMode]}`;
     }
 
+    let imageUrl = null;
+    let usingReplicate = false;
+
     // Tentar usar Replicate API se disponível
     const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
     
     if (replicateToken) {
       try {
         console.log('Using Replicate API for image generation');
+        usingReplicate = true;
         
         // Usar SDXL (Stable Diffusion XL) via Replicate
         const response = await fetch('https://api.replicate.com/v1/predictions', {
@@ -76,7 +131,6 @@ Deno.serve(async (req: Request) => {
         const prediction = await response.json();
         
         // Aguardar a geração (polling)
-        let imageUrl = null;
         let attempts = 0;
         const maxAttempts = 60; // 60 segundos máximo
         
@@ -100,36 +154,81 @@ Deno.serve(async (req: Request) => {
           
           attempts++;
         }
-
-        if (imageUrl) {
-          return new Response(
-            JSON.stringify({ imageUrl }),
-            { 
-              status: 200,
-              headers: { 
-                'Content-Type': 'application/json',
-                'Connection': 'keep-alive'
-              }
-            }
-          );
-        }
       } catch (replicateError) {
         console.error('Replicate API error:', replicateError);
-        // Continuar para fallback
+        usingReplicate = false;
       }
     }
 
     // Fallback: Usar API gratuita de geração de imagens (Pollinations.ai)
-    console.log('Using Pollinations.ai as fallback');
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&nologo=true`;
-    
+    if (!imageUrl) {
+      console.log('Using Pollinations.ai as fallback');
+      imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&nologo=true`;
+    }
+
+    // Salvar no cache (se configurado)
+    if (useCache && supabaseUrl && supabaseKey && imageUrl) {
+      try {
+        // Fazer download da imagem
+        const imageResponse = await fetch(imageUrl);
+        const imageBlob = await imageResponse.blob();
+        const imageBuffer = await imageBlob.arrayBuffer();
+        
+        // Gerar nome único para o arquivo
+        const timestamp = Date.now();
+        const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(prompt + creationMode));
+        const hashArray = Array.from(new Uint8Array(hash));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+        const fileName = `${creationMode}/${hashHex}_${timestamp}.png`;
+        
+        // Upload para Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('generated-images')
+          .upload(fileName, imageBuffer, {
+            contentType: 'image/png',
+            cacheControl: '31536000', // 1 ano
+          });
+
+        if (!uploadError && uploadData) {
+          // Obter URL pública
+          const { data: publicUrlData } = supabase.storage
+            .from('generated-images')
+            .getPublicUrl(fileName);
+
+          const storageUrl = publicUrlData.publicUrl;
+
+          // Salvar no cache database
+          await supabase
+            .from('image_cache')
+            .insert({
+              prompt,
+              creation_mode: creationMode,
+              image_url: storageUrl,
+              storage_path: fileName,
+              api_used: usingReplicate ? 'replicate' : 'pollinations'
+            });
+
+          console.log('Image cached successfully');
+          imageUrl = storageUrl; // Usar URL do storage
+        }
+      } catch (cacheError) {
+        console.error('Failed to cache image:', cacheError);
+        // Continuar mesmo se o cache falhar
+      }
+    }
+
     return new Response(
-      JSON.stringify({ imageUrl: pollinationsUrl }),
+      JSON.stringify({ 
+        imageUrl,
+        cached: false,
+        apiUsed: usingReplicate ? 'replicate' : 'pollinations'
+      }),
       { 
         status: 200,
         headers: { 
           'Content-Type': 'application/json',
-          'Connection': 'keep-alive'
+          'Connection': 'keep-alive',
+          'X-Cache': 'MISS'
         }
       }
     );
