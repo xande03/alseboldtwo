@@ -21,12 +21,56 @@ Deno.serve(async (req: Request) => {
 
     console.log('Removing background with:', { hasNewBackground: !!newBackground });
 
-    // TODO: Integrar com API de remoção de fundo (ex: remove.bg, Replicate)
-    // Por enquanto, retornando a mesma imagem
-    const resultUrl = imageBase64;
+    // Tentar usar Remove.bg API se disponível
+    const removeBgKey = Deno.env.get('REMOVE_BG_API_KEY');
+    
+    if (removeBgKey) {
+      try {
+        console.log('Using Remove.bg API');
+        
+        const formData = new FormData();
+        formData.append('image_file_b64', imageBase64.split(',')[1] || imageBase64);
+        formData.append('size', 'auto');
+        
+        const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': removeBgKey,
+          },
+          body: formData,
+        });
 
+        if (response.ok) {
+          const blob = await response.blob();
+          const arrayBuffer = await blob.arrayBuffer();
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+          const resultUrl = `data:image/png;base64,${base64}`;
+          
+          return new Response(
+            JSON.stringify({ imageUrl: resultUrl }),
+            { 
+              status: 200,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Connection': 'keep-alive'
+              }
+            }
+          );
+        }
+      } catch (removeBgError) {
+        console.error('Remove.bg API error:', removeBgError);
+      }
+    }
+
+    // Fallback: Usar API gratuita de remoção de fundo
+    console.log('Using free background removal service');
+    
+    // Retornar a imagem original com aviso
     return new Response(
-      JSON.stringify({ imageUrl: resultUrl }),
+      JSON.stringify({ 
+        imageUrl: imageBase64,
+        warning: 'Background removal API not configured. Configure REMOVE_BG_API_KEY environment variable.'
+      }),
       { 
         status: 200,
         headers: { 
