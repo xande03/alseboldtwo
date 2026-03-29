@@ -57,7 +57,8 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-const CHAT_URL = `https://zfstmsgevfhdkhesatzm.supabase.co/functions/v1/chat`;
+const GROQ_API_KEY = "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";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 const AIChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -74,14 +75,14 @@ const AIChat = () => {
 
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
-  const streamGemini = async (history: { role: string; content: string }[], assistantId: string) => {
-    const resp = await fetch(CHAT_URL, {
+  const streamGroq = async (history: { role: string; content: string }[], assistantId: string) => {
+    const resp = await fetch(GROQ_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmc3Rtc2dldmZoZGtoZXNhdHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzU4ODcsImV4cCI6MjA4OTU1MTg4N30.nuXxXZABtzcGLMDxXJXWxZ-NieullIP0_dhNYm0_OMw`,
+        Authorization: `Bearer ${GROQ_API_KEY}`,
       },
-      body: JSON.stringify({ messages: history }),
+      body: JSON.stringify({ model: "openai/gpt-oss-120b", messages: [{ role: "system", content: "Você é um assistente de IA inteligente. Responda em português brasileiro." }, ...history], stream: true, max_tokens: 65536 }),
     });
 
     if (!resp.ok) {
@@ -140,8 +141,8 @@ const AIChat = () => {
     try {
       const history = [...messages, userMsg].map((m) => ({ role: m.role, content: m.content }));
 
-      if (model === "gemini-3-pro") {
-        await streamGemini(history, assistantMsg.id);
+      if (model === "gpt-oss-120b") {
+        await streamGroq(history, assistantMsg.id);
       } else {
         const response = await window.puter.ai.chat(history, { model, stream: true });
         let accumulated = "";
@@ -180,7 +181,7 @@ const AIChat = () => {
           <SelectContent>
             <SelectItem value="deepseek/deepseek-v3.2">🧠 DeepSeek v3.2</SelectItem>
             <SelectItem value="claude-3-7-sonnet">🎯 Claude 3.7 Sonnet</SelectItem>
-            <SelectItem value="gemini-3-pro">✨ Gemini 3 Pro</SelectItem>
+            <SelectItem value="gpt-oss-120b">🚀 GPT-OSS 120B</SelectItem>
           </SelectContent>
         </Select>
         <Button variant="ghost" size="sm" onClick={clearChat} disabled={messages.length === 0 || isStreaming} className="text-muted-foreground hover:text-destructive">
