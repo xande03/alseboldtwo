@@ -27,7 +27,7 @@ declare global {
   }
 }
 
-type Model = "deepseek/deepseek-v3.2" | "claude-3-7-sonnet" | "gemini-3-pro";
+type Model = "deepseek/deepseek-v3.2" | "claude-3-7-sonnet" | "gpt-oss-120b";
 
 interface Message {
   id: string;
@@ -38,7 +38,7 @@ interface Message {
 const modelLabels: Record<Model, string> = {
   "deepseek/deepseek-v3.2": "DeepSeek v3.2",
   "claude-3-7-sonnet": "Claude 3.7 Sonnet",
-  "gemini-3-pro": "Gemini 3 Pro",
+  "gpt-oss-120b": "GPT-OSS 120B",
 };
 
 const CopyButton = ({ text }: { text: string }) => {
