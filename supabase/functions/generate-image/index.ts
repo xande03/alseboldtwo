@@ -95,68 +95,108 @@ Deno.serve(async (req: Request) => {
     }
 
     let imageUrl = null;
-    let usingReplicate = false;
+    let usingAPI = 'pollinations';
 
-    // Tentar usar Replicate API se disponível
-    const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
+    // Tentar usar OpenAI DALL-E se disponível
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     
-    if (replicateToken) {
+    if (openaiApiKey) {
       try {
-        console.log('Using Replicate API for image generation');
-        usingReplicate = true;
+        console.log('Using OpenAI DALL-E for image generation');
+        usingAPI = 'openai';
         
-        // Usar SDXL (Stable Diffusion XL) via Replicate
-        const response = await fetch('https://api.replicate.com/v1/predictions', {
+        const response = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
           headers: {
-            'Authorization': `Token ${replicateToken}`,
+            'Authorization': `Bearer ${openaiApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            version: "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b", // SDXL
-            input: {
-              prompt: finalPrompt,
-              negative_prompt: "ugly, blurry, low quality, distorted",
-              width: 1024,
-              height: 1024,
-              num_outputs: 1,
-            },
+            model: "dall-e-3",
+            prompt: finalPrompt,
+            n: 1,
+            size: "1024x1024",
+            quality: "standard",
+            response_format: "url"
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Replicate API error: ${response.status}`);
+          throw new Error(`OpenAI API error: ${response.status}`);
         }
 
-        const prediction = await response.json();
-        
-        // Aguardar a geração (polling)
-        let attempts = 0;
-        const maxAttempts = 60; // 60 segundos máximo
-        
-        while (!imageUrl && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        const data = await response.json();
+        if (data.data && data.data.length > 0) {
+          imageUrl = data.data[0].url;
+        }
+      } catch (openaiError) {
+        console.error('OpenAI API error:', openaiError);
+        usingAPI = 'pollinations';
+      }
+    }
+
+    // Tentar usar Replicate API se OpenAI não disponível
+    if (!imageUrl) {
+      const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
+      
+      if (replicateToken) {
+        try {
+          console.log('Using Replicate API for image generation');
+          usingAPI = 'replicate';
           
-          const statusResponse = await fetch(prediction.urls.get, {
+          // Usar SDXL (Stable Diffusion XL) via Replicate
+          const response = await fetch('https://api.replicate.com/v1/predictions', {
+            method: 'POST',
             headers: {
               'Authorization': `Token ${replicateToken}`,
+              'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+              version: "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b", // SDXL
+              input: {
+                prompt: finalPrompt,
+                negative_prompt: "ugly, blurry, low quality, distorted",
+                width: 1024,
+                height: 1024,
+                num_outputs: 1,
+              },
+            }),
           });
-          
-          const status = await statusResponse.json();
-          
-          if (status.status === 'succeeded' && status.output && status.output.length > 0) {
-            imageUrl = status.output[0];
-            break;
-          } else if (status.status === 'failed') {
-            throw new Error('Image generation failed');
+
+          if (!response.ok) {
+            throw new Error(`Replicate API error: ${response.status}`);
           }
+
+          const prediction = await response.json();
           
-          attempts++;
+          // Aguardar a geração (polling)
+          let attempts = 0;
+          const maxAttempts = 60; // 60 segundos máximo
+          
+          while (!imageUrl && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const statusResponse = await fetch(prediction.urls.get, {
+              headers: {
+                'Authorization': `Token ${replicateToken}`,
+              },
+            });
+            
+            const status = await statusResponse.json();
+            
+            if (status.status === 'succeeded' && status.output && status.output.length > 0) {
+              imageUrl = status.output[0];
+              break;
+            } else if (status.status === 'failed') {
+              throw new Error('Image generation failed');
+            }
+            
+            attempts++;
+          }
+        } catch (replicateError) {
+          console.error('Replicate API error:', replicateError);
+          usingAPI = 'pollinations';
         }
-      } catch (replicateError) {
-        console.error('Replicate API error:', replicateError);
-        usingReplicate = false;
       }
     }
 
@@ -205,7 +245,7 @@ Deno.serve(async (req: Request) => {
               creation_mode: creationMode,
               image_url: storageUrl,
               storage_path: fileName,
-              api_used: usingReplicate ? 'replicate' : 'pollinations'
+              api_used: usingAPI
             });
 
           console.log('Image cached successfully');
@@ -221,7 +261,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ 
         imageUrl,
         cached: false,
-        apiUsed: usingReplicate ? 'replicate' : 'pollinations'
+        apiUsed: usingAPI
       }),
       { 
         status: 200,
