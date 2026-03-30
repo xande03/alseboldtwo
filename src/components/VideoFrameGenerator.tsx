@@ -91,18 +91,9 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         const frameNumber = i + 1;
         const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, frame ${frameNumber} of ${frameCount}, cinematic sequence, consistent style`;
 
-        const { data, error } = await supabase.functions.invoke("generate-image", {
-          body: {
-            prompt: framePrompt,
-            width: dimensions.width,
-            height: dimensions.height,
-          },
-        });
+        const imageUrl = await generateImage(framePrompt);
 
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
-
-        if (data?.imageUrl) {
+        if (imageUrl) {
           generatedFrames.push(data.imageUrl);
           setFrames([...generatedFrames]);
           setProgress(((i + 1) / frameCount) * 100);
