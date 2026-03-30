@@ -94,7 +94,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         const imageUrl = await generateImage(framePrompt);
 
         if (imageUrl) {
-          generatedFrames.push(data.imageUrl);
+          generatedFrames.push(imageUrl);
           setFrames([...generatedFrames]);
           setProgress(((i + 1) / frameCount) * 100);
         }
