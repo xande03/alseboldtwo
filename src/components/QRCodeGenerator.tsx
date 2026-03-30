@@ -12,10 +12,10 @@ import GeneratingAnimation from "./GeneratingAnimation";
 type Category = "text" | "url" | "file";
 type ExpirationOption = "immediate" | "1hour" | "permanent";
 
-const categories: { value: Category; label: string; icon: typeof FileText; description: string }[] = [
+const categories: { value: Category; label: string; icon: typeof FileText; description: string; disabled?: boolean }[] = [
   { value: "text", label: "Texto", icon: Type, description: "Texto simples ou dados" },
   { value: "url", label: "Link/URL", icon: Link, description: "Links da web ou URLs" },
-  { value: "file", label: "Arquivo", icon: File, description: "Upload de arquivos" },
+  { value: "file", label: "Arquivo", icon: File, description: "Em breve - use URL por enquanto", disabled: true },
 ];
 
 const expirationOptions: { value: ExpirationOption; label: string; description: string }[] = [
@@ -170,19 +170,25 @@ const QRCodeGenerator = ({ onResult }: QRCodeGeneratorProps) => {
             <motion.button
               key={cat.value}
               onClick={() => { 
-                setCategory(cat.value); 
-                setSelectedFile(null); 
-                setTextContent(""); 
-                setQrResult(null); 
+                if (!cat.disabled) {
+                  setCategory(cat.value); 
+                  setSelectedFile(null); 
+                  setTextContent(""); 
+                  setQrResult(null); 
+                }
               }}
-              disabled={isGenerating}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-colors disabled:opacity-50 ${
-                category === cat.value
+              disabled={isGenerating || cat.disabled}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-colors ${
+                cat.disabled 
+                  ? "opacity-50 cursor-not-allowed bg-secondary/20 border-border/30"
+                  : isGenerating
+                  ? "opacity-50 cursor-not-allowed"
+                  : category === cat.value
                   ? "bg-primary/15 border-primary/40 text-primary"
                   : "bg-secondary/30 border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
               }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={cat.disabled ? {} : { scale: 1.02 }}
+              whileTap={cat.disabled ? {} : { scale: 0.98 }}
             >
               <cat.icon className="w-6 h-6" />
               <div>

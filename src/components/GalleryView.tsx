@@ -10,6 +10,7 @@ const toolLabels: Record<string, string> = {
   generate: "Gerada",
   edit: "Editada",
   qrcode: "QR Code",
+  imagetoqr: "Imagem→QR",
 };
 
 const toolColorClasses: Record<string, string> = {
@@ -18,6 +19,7 @@ const toolColorClasses: Record<string, string> = {
   generate: "bg-tool-generate tool-generate",
   edit: "bg-tool-edit tool-edit",
   qrcode: "bg-tool-qrcode tool-qrcode",
+  imagetoqr: "bg-tool-qrcode tool-qrcode",
 };
 
 interface GalleryViewProps {
@@ -25,7 +27,7 @@ interface GalleryViewProps {
   onDelete: (id: string) => void;
 }
 
-type FilterType = "all" | "upscale" | "bgremove" | "generate" | "edit" | "qrcode";
+type FilterType = "all" | "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "imagetoqr";
 
 const GalleryView = ({ items, onDelete }: GalleryViewProps) => {
   const [filter, setFilter] = useState<FilterType>("all");
@@ -40,6 +42,7 @@ const GalleryView = ({ items, onDelete }: GalleryViewProps) => {
     { value: "generate", label: "Geradas" },
     { value: "edit", label: "Editadas" },
     { value: "qrcode", label: "QR Codes" },
+    { value: "imagetoqr", label: "Imagem→QR" },
   ];
 
   if (items.length === 0) {

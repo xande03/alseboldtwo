@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
 
-export type ToolView = "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "musicdna" | "chat" | "converter" | "summarizer" | "signature" | "videoframes" | "gallery";
+export type ToolView = "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "imagetoqr" | "musicdna" | "chat" | "converter" | "summarizer" | "signature" | "videoframes" | "gallery";
 
 const tools: { value: ToolView; label: string; subtitle: string; icon: typeof ArrowUpCircle; bgColor: string; iconColor: string }[] = [
   { value: "chat", label: "Chat IA", subtitle: "AI assistant", icon: MessageCircle, bgColor: "bg-indigo-500/15", iconColor: "text-indigo-500" },
@@ -26,6 +26,7 @@ const tools: { value: ToolView; label: string; subtitle: string; icon: typeof Ar
   { value: "summarizer", label: "Resumidor IA", subtitle: "Resuma textos", icon: FileText, bgColor: "bg-violet-500/15", iconColor: "text-violet-500" },
   { value: "signature", label: "Assinatura", subtitle: "Assinatura digital", icon: PenLine, bgColor: "bg-teal-500/15", iconColor: "text-teal-500" },
   { value: "qrcode", label: "QR Code", subtitle: "Generate QR", icon: QrCode, bgColor: "bg-amber-500/15", iconColor: "text-amber-500" },
+  { value: "imagetoqr", label: "Imagem→QR", subtitle: "Image to QR", icon: QrCode, bgColor: "bg-orange-500/15", iconColor: "text-orange-500" },
   { value: "musicdna", label: "Music DNA", subtitle: "Analyze music", icon: Music, bgColor: "bg-green-500/15", iconColor: "text-green-500" },
   { value: "gallery", label: "Galeria", subtitle: "Suas criações", icon: LayoutGrid, bgColor: "bg-orange-500/15", iconColor: "text-orange-500" },
 ];

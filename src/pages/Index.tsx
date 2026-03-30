@@ -15,6 +15,7 @@ import BackgroundRemover from "@/components/BackgroundRemover";
 import ImageGenerator from "@/components/ImageGenerator";
 import ImageEditor from "@/components/ImageEditor";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
+import ImageToQR from "@/components/ImageToQR";
 import MusicDNA from "@/components/MusicDNA";
 import AIChat from "@/components/AIChat";
 import GalleryView from "@/components/GalleryView";
@@ -180,6 +181,12 @@ const Index = () => {
               {activeView === "qrcode" && (
                 <motion.div key="qrcode" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
                   <QRCodeGenerator onResult={(resultUrl, prompt) => addItem({ imageUrl: resultUrl, resultUrl, prompt, tool: "qrcode" })} />
+                </motion.div>
+              )}
+
+              {activeView === "imagetoqr" && (
+                <motion.div key="imagetoqr" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+                  <ImageToQR onResult={(resultUrl, prompt) => addItem({ imageUrl: resultUrl, resultUrl, prompt, tool: "imagetoqr" })} />
                 </motion.div>
               )}
 
