@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Sparkles, Download, Loader2, Brush, Layers, PenTool, Presentation, Monitor, Sticker, Unlock, BookOpen, UserCircle, Upload, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { generateImage as generateImageApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -121,15 +121,10 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         imageBase64 = await compressImage(uploadedImage);
       }
 
-      const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt: prompt.trim() || "Generate based on this image", creationMode, imageBase64 },
-      });
+      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode);
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      setGeneratedUrl(data.imageUrl);
-      onResult?.(data.imageUrl, prompt);
+      setGeneratedUrl(imageUrl);
+      onResult?.(imageUrl, prompt);
       toast({ title: "Imagem gerada!", description: "Sua imagem foi criada com sucesso." });
     } catch (err: any) {
       console.error("Generate error:", err);

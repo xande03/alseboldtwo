@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Music, Loader2, Download, User, Disc, Gauge, KeyRound, Guitar, FileText, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { analyzeMusic as analyzeMusicApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,11 +37,7 @@ const MusicDNA = ({ onResult }: MusicDNAProps) => {
     setIsAnalyzing(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-music", {
-        body: { link: link.trim() },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await analyzeMusicApi(link.trim());
       if (!data.thumbnail) {
         const videoId = getYouTubeVideoId(link);
         if (videoId) data.thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;

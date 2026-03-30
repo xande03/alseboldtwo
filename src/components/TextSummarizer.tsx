@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as pdfjsLib from "pdfjs-dist";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { summarizeText as summarizeTextApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -98,15 +98,10 @@ const TextSummarizer = ({ onResult }: TextSummarizerProps) => {
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("summarize-text", {
-        body: { text: inputText, outputType },
-      });
+      const result = await summarizeTextApi(inputText, outputType);
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      setResult(data.result);
-      onResult?.(data.result, `${outputType}: ${inputText.slice(0, 100)}...`);
+      setResult(result);
+      onResult?.(result, `${outputType}: ${inputText.slice(0, 100)}...`);
       toast({ title: "Concluído!", description: "Seu conteúdo foi processado." });
     } catch (err: any) {
       console.error("Summarize error:", err);

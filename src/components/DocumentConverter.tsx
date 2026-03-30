@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { ocrScan } from "@/lib/api";
 import { jsPDF } from "jspdf";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
@@ -124,12 +124,8 @@ const DocumentConverter = () => {
     setOcrPreview(previewUrl);
     try {
       const base64 = await toBase64(file);
-      const { data, error } = await supabase.functions.invoke("ocr-scan", {
-        body: { imageBase64: base64 },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setOcrText(data.text || "Nenhum texto encontrado.");
+      const text = await ocrScan(base64);
+      setOcrText(text || "Nenhum texto encontrado.");
     } catch (err: any) {
       toast({ title: "Erro no OCR", description: err.message, variant: "destructive" });
     } finally {

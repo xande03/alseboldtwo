@@ -3,7 +3,7 @@ import { Film, Sparkles, Download, Loader2, Image as ImageIcon } from "lucide-re
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { generateImage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import GeneratingAnimation from "@/components/GeneratingAnimation";
 
@@ -91,19 +91,10 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         const frameNumber = i + 1;
         const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, frame ${frameNumber} of ${frameCount}, cinematic sequence, consistent style`;
 
-        const { data, error } = await supabase.functions.invoke("generate-image", {
-          body: {
-            prompt: framePrompt,
-            width: dimensions.width,
-            height: dimensions.height,
-          },
-        });
+        const imageUrl = await generateImage(framePrompt);
 
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
-
-        if (data?.imageUrl) {
-          generatedFrames.push(data.imageUrl);
+        if (imageUrl) {
+          generatedFrames.push(imageUrl);
           setFrames([...generatedFrames]);
           setProgress(((i + 1) / frameCount) * 100);
         }
