@@ -68,26 +68,11 @@ const Index = () => {
     if (!selectedFile || !preview || !prompt.trim()) return;
     setIsProcessing(true);
     try {
-      const origName = `originals/${Date.now()}-${selectedFile.name}`;
-      const { error: uploadErr } = await supabase.storage.from("upscale-images").upload(origName, selectedFile);
-      if (uploadErr) throw uploadErr;
-      const { data: origPublic } = supabase.storage.from("upscale-images").getPublicUrl(origName);
-
-      const { data: historyEntry, error: histErr } = await supabase
-        .from("upscale_history")
-        .insert({ original_url: origPublic.publicUrl, prompt, status: "processing" })
-        .select().single();
-      if (histErr) throw histErr;
-
       const compressed = await compressImage(preview);
-      const { data, error } = await supabase.functions.invoke("upscale-image", {
-        body: { imageBase64: compressed, prompt, historyId: historyEntry.id, aspectRatio },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const upscaledUrl = await upscaleImage(compressed, prompt);
 
-      setUpscaledUrl(data.upscaledUrl);
-      addItem({ imageUrl: origPublic.publicUrl, resultUrl: data.upscaledUrl, prompt, tool: "upscale" });
+      setUpscaledUrl(upscaledUrl);
+      addItem({ imageUrl: preview, resultUrl: upscaledUrl, prompt, tool: "upscale" });
       toast({ title: "Upscale concluído!", description: "Sua imagem foi aprimorada com sucesso." });
     } catch (err: any) {
       console.error("Upscale error:", err);
