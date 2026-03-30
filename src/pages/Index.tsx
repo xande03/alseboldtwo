@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Download, Wifi, WifiOff, MonitorSmartphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { upscaleImage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useSessionHistory } from "@/hooks/useSessionHistory";
