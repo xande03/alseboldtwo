@@ -124,12 +124,8 @@ const DocumentConverter = () => {
     setOcrPreview(previewUrl);
     try {
       const base64 = await toBase64(file);
-      const { data, error } = await supabase.functions.invoke("ocr-scan", {
-        body: { imageBase64: base64 },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setOcrText(data.text || "Nenhum texto encontrado.");
+      const text = await ocrScan(base64);
+      setOcrText(text || "Nenhum texto encontrado.");
     } catch (err: any) {
       toast({ title: "Erro no OCR", description: err.message, variant: "destructive" });
     } finally {
