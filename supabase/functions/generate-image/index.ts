@@ -8,7 +8,7 @@ interface RequestPayload {
   useCache?: boolean;
 }
 
-console.info('generate-image function started - ULTRA OPTIMIZED VERSION');
+console.info('generate-image function started - ULTRA OPTIMIZED WITH Z.AI');
 
 // Mapeamento de modos de criação
 const modePrompts: Record<string, string> = {
@@ -26,7 +26,7 @@ const modePrompts: Record<string, string> = {
   livre: "high quality, detailed, professional, artistic, beautiful"
 };
 
-// Função ultra otimizada para gerar imagem
+// Função ultra otimizada para gerar imagem com Z.AI
 async function generateImageUltraFast(prompt: string, mode: string): Promise<{ url: string; method: string }> {
   let finalPrompt = prompt;
   
@@ -37,9 +37,48 @@ async function generateImageUltraFast(prompt: string, mode: string): Promise<{ u
     finalPrompt = `${prompt}, ${modePrompts.livre}`;
   }
 
-  // Método 1: Pollinations.ai (mais rápido e confiável)
+  // Método 1: Z.AI (nova API premium) - se API key válida
+  const zaiApiKey = Deno.env.get('ZAI_API_KEY') || 'f3b552c57e4648958f0161ca632b73f4.c0kJaGFyNrTvyM2LEsta';
+  if (zaiApiKey && zaiApiKey !== 'f3b552c57e4648958f0161ca632b73f4.c0kJaGFyNrTvyM2LEsta') {
+    try {
+      console.log('Attempting Z.AI GLM-Image...');
+      
+      const response = await fetch('https://api.z.ai/api/paas/v4/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${zaiApiKey}`,
+          'Content-Type': 'application/json',
+          'Accept-Language': 'en-US,en'
+        },
+        body: JSON.stringify({
+          model: "glm-image",
+          prompt: finalPrompt,
+          size: "1280x1280",
+          quality: "standard",
+          n: 1
+        }),
+        signal: AbortSignal.timeout(30000) // 30s timeout
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && data.data[0] && data.data[0].url) {
+          console.log('Z.AI GLM-Image SUCCESS');
+          return { url: data.data[0].url, method: 'Z.AI GLM-Image' };
+        }
+      } else {
+        console.warn('Z.AI response not ok:', response.status);
+      }
+    } catch (error) {
+      console.warn('Z.AI GLM-Image failed:', error.message);
+    }
+  } else {
+    console.log('Z.AI: API key not configured or using demo key (skipping)');
+  }
+
+  // Método 2: Pollinations.ai (rápido e confiável)
   try {
-    console.log('Using Pollinations.ai (primary)...');
+    console.log('Using Pollinations.ai (fallback)...');
     const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&nologo=true&model=flux&enhance=true&seed=${Date.now()}`;
     console.log('Pollinations.ai SUCCESS');
     return { url: pollinationsUrl, method: 'Pollinations.ai' };
@@ -47,7 +86,7 @@ async function generateImageUltraFast(prompt: string, mode: string): Promise<{ u
     console.warn('Pollinations.ai failed:', error.message);
   }
 
-  // Método 2: OpenAI DALL-E 3 (se disponível)
+  // Método 3: OpenAI DALL-E 3 (se disponível)
   const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
   if (openaiApiKey) {
     try {
@@ -82,7 +121,7 @@ async function generateImageUltraFast(prompt: string, mode: string): Promise<{ u
     }
   }
 
-  // Método 3: Fallback garantido
+  // Método 4: Fallback garantido
   console.log('Using guaranteed fallback');
   const placeholderSvg = `<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#667eea;stop-opacity:1" /><stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" /></linearGradient></defs><rect width="100%" height="100%" fill="url(#grad1)"/><circle cx="512" cy="400" r="80" fill="rgba(255,255,255,0.2)"/><text x="50%" y="55%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white">Imagem Gerada</text><text x="50%" y="65%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="18" fill="rgba(255,255,255,0.8)">${finalPrompt.substring(0, 60)}${finalPrompt.length > 60 ? '...' : ''}</text><text x="50%" y="75%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.6)">Modo: ${mode}</text></svg>`;
 
