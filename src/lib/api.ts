@@ -117,12 +117,33 @@ export async function removeBackground(imageBase64: string, _newBackground?: str
   return imageBase64;
 }
 
-// ---- Upscale Image (re-generate at higher quality) ----
+// ---- Upscale Image (Supabase Function with multiple methods) ----
 
-export async function upscaleImage(imageBase64: string, prompt: string): Promise<string> {
-  // Use DALL-E to create a higher quality version based on the prompt
-  const enhancedPrompt = `${prompt}, ultra high resolution, extremely detailed, 4K quality, sharp focus`;
-  return generateImage(enhancedPrompt);
+export async function upscaleImage(imageBase64: string, scale: number = 4): Promise<string> {
+  try {
+    const response = await fetch('https://zfstmsgevfhdkhesatzm.supabase.co/functions/v1/upscale-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmc3Rtc2dldmZoZGtoZXNhdHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzU4ODcsImV4cCI6MjA4OTU1MTg4N30.nuXxXZABtzcGLMDxXJXWxZ-NieullIP0_dhNYm0_OMw`,
+      },
+      body: JSON.stringify({ 
+        imageBase64, 
+        scale: Math.min(scale, 4) // Max scale 4
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upscale function error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.imageUrl || imageBase64;
+  } catch (error: any) {
+    console.error('Upscale error:', error);
+    // Fallback: return original image
+    return imageBase64;
+  }
 }
 
 // ---- Text Summarization (Groq) ----
@@ -159,67 +180,86 @@ export async function summarizeText(text: string, outputType: string): Promise<s
   return data.choices[0].message.content;
 }
 
-// ---- Music DNA Analysis (Groq) ----
+// ---- Music DNA Analysis (Enhanced with Download) ----
 
-export async function analyzeMusic(link: string) {
-  const resp = await fetch(GROQ_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        {
-          role: "system",
-          content: `Você é um especialista em música. Analise o link da música e retorne um JSON com: title, artist, band, genre, bpm (string), key (tom musical), lyrics (letra completa se possível). Se não encontrar a letra, coloque "Letra não disponível". Retorne APENAS o JSON, sem markdown.`,
-        },
-        { role: "user", content: `Analise esta música: ${link}` },
-      ],
-      max_tokens: 4096,
-      response_format: { type: "json_object" },
-    }),
-  });
+export async function analyzeMusic(link: string, action: 'analyze' | 'download' = 'analyze') {
+  try {
+    const response = await fetch('https://zfstmsgevfhdkhesatzm.supabase.co/functions/v1/analyze-music', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmc3Rtc2dldmZoZGtoZXNhdHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzU4ODcsImV4cCI6MjA4OTU1MTg4N30.nuXxXZABtzcGLMDxXJXWxZ-NieullIP0_dhNYm0_OMw`,
+      },
+      body: JSON.stringify({ 
+        link, 
+        action,
+        format: 'mp3'
+      }),
+    });
 
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Groq error ${resp.status}`);
+    if (!response.ok) {
+      throw new Error(`Music analysis error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Music analysis error:', error);
+    throw new Error(`Erro na análise de música: ${error.message}`);
   }
-
-  const data = await resp.json();
-  return JSON.parse(data.choices[0].message.content);
 }
 
-// ---- OCR Scan (Groq Vision) ----
+// ---- YouTube Music Download ----
+
+export async function downloadYouTubeMusic(youtubeUrl: string, format: 'mp3' | 'mp4' = 'mp3') {
+  try {
+    const response = await fetch('https://zfstmsgevfhdkhesatzm.supabase.co/functions/v1/download-youtube-music', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmc3Rtc2dldmZoZGtoZXNhdHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzU4ODcsImV4cCI6MjA4OTU1MTg4N30.nuXxXZABtzcGLMDxXJXWxZ-NieullIP0_dhNYm0_OMw`,
+      },
+      body: JSON.stringify({ 
+        youtubeUrl,
+        format,
+        quality: 'high'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Download function error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('YouTube download error:', error);
+    throw new Error(`Erro no download: ${error.message}`);
+  }
+}
+
+// ---- OCR Scan (Supabase Function) ----
 
 export async function ocrScan(imageBase64: string): Promise<string> {
-  const resp = await fetch(GROQ_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.2-90b-vision-preview",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Extraia todo o texto visível nesta imagem. Retorne apenas o texto extraído, sem explicações." },
-            { type: "image_url", image_url: { url: imageBase64 } },
-          ],
-        },
-      ],
-      max_tokens: 4096,
-    }),
-  });
+  try {
+    const response = await fetch('https://zfstmsgevfhdkhesatzm.supabase.co/functions/v1/ocr-scan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmc3Rtc2dldmZoZGtoZXNhdHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzU4ODcsImV4cCI6MjA4OTU1MTg4N30.nuXxXZABtzcGLMDxXJXWxZ-NieullIP0_dhNYm0_OMw`,
+      },
+      body: JSON.stringify({ imageBase64 }),
+    });
 
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Groq error ${resp.status}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `OCR function error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.text || 'Nenhum texto encontrado';
+  } catch (error: any) {
+    console.error('OCR error:', error);
+    throw new Error(`Erro no OCR: ${error.message}`);
   }
-
-  const data = await resp.json();
-  return data.choices[0].message.content;
 }
