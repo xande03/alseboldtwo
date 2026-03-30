@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Download, Loader2, Paintbrush, Upload } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { removeBackground as removeBackgroundApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import UploadZone from "./UploadZone";
 import GeneratingAnimation from "./GeneratingAnimation";
