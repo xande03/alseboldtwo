@@ -37,11 +37,7 @@ const MusicDNA = ({ onResult }: MusicDNAProps) => {
     setIsAnalyzing(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-music", {
-        body: { link: link.trim() },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await analyzeMusicApi(link.trim());
       if (!data.thumbnail) {
         const videoId = getYouTubeVideoId(link);
         if (videoId) data.thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;

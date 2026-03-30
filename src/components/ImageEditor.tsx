@@ -58,13 +58,9 @@ const ImageEditor = ({ onResult }: ImageEditorProps) => {
     setResultUrl(null);
     try {
       const compressed = await compressImage(preview);
-      const { data, error } = await supabase.functions.invoke("edit-image", {
-        body: { imageBase64: compressed, prompt },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setResultUrl(data.resultUrl);
-      onResult?.(preview, data.resultUrl, prompt);
+      const resultImage = await editImageApi(compressed, prompt);
+      setResultUrl(resultImage);
+      onResult?.(preview, resultImage, prompt);
       toast({ title: "Imagem editada!", description: "Sua edição foi aplicada com sucesso." });
     } catch (err: any) {
       console.error("Edit error:", err);

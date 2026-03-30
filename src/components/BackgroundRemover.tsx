@@ -55,13 +55,9 @@ const BackgroundRemover = ({ onResult }: BackgroundRemoverProps) => {
     setIsProcessing(true);
     try {
       const compressed = await compressImage(preview);
-      const { data, error } = await supabase.functions.invoke("remove-background", {
-        body: { imageBase64: compressed, newBackground },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setResultUrl(data.resultUrl);
-      onResult?.(preview, data.resultUrl, newBackground ? `Fundo: ${newBackground}` : "Fundo removido");
+      const resultImage = await removeBackgroundApi(compressed, newBackground);
+      setResultUrl(resultImage);
+      onResult?.(preview, resultImage, newBackground ? `Fundo: ${newBackground}` : "Fundo removido");
       toast({ title: "Fundo removido!", description: "Imagem processada com sucesso." });
     } catch (err: any) {
       console.error("BG removal error:", err);

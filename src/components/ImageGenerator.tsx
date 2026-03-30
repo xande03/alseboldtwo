@@ -121,15 +121,10 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         imageBase64 = await compressImage(uploadedImage);
       }
 
-      const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt: prompt.trim() || "Generate based on this image", creationMode, imageBase64 },
-      });
+      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode);
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      setGeneratedUrl(data.imageUrl);
-      onResult?.(data.imageUrl, prompt);
+      setGeneratedUrl(imageUrl);
+      onResult?.(imageUrl, prompt);
       toast({ title: "Imagem gerada!", description: "Sua imagem foi criada com sucesso." });
     } catch (err: any) {
       console.error("Generate error:", err);

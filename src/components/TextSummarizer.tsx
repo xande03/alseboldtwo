@@ -98,15 +98,10 @@ const TextSummarizer = ({ onResult }: TextSummarizerProps) => {
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("summarize-text", {
-        body: { text: inputText, outputType },
-      });
+      const result = await summarizeTextApi(inputText, outputType);
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      setResult(data.result);
-      onResult?.(data.result, `${outputType}: ${inputText.slice(0, 100)}...`);
+      setResult(result);
+      onResult?.(result, `${outputType}: ${inputText.slice(0, 100)}...`);
       toast({ title: "Concluído!", description: "Seu conteúdo foi processado." });
     } catch (err: any) {
       console.error("Summarize error:", err);
