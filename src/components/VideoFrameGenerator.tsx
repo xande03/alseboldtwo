@@ -3,7 +3,7 @@ import { Film, Sparkles, Download, Loader2, Image as ImageIcon } from "lucide-re
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { generateImage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import GeneratingAnimation from "@/components/GeneratingAnimation";
 
