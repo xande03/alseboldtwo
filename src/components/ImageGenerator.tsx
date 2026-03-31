@@ -122,7 +122,7 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         imageBase64 = await compressImage(uploadedImage);
       }
 
-      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode);
+      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode, engine);
 
       setGeneratedUrl(imageUrl);
       onResult?.(imageUrl, prompt);
