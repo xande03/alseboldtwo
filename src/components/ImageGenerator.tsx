@@ -1,10 +1,11 @@
 import { useState, useCallback } from "react";
 import { Sparkles, Download, Loader2, Brush, Layers, PenTool, Presentation, Monitor, Sticker, Unlock, BookOpen, UserCircle, Upload, X, Shield, ShieldOff, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { generateImage as generateImageApi, type ImageEngine } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import AspectRatioSelector, { type AspectRatioOption } from "./AspectRatioSelector";
 import GeneratingAnimation from "./GeneratingAnimation";
 
 type CreationMode = "livre" | "caricatura" | "logomarca" | "designer" | "slide" | "webui" | "adesivo" | "hq" | "anime" | "cartoon" | "avatar" | "lego";
