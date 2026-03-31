@@ -70,7 +70,7 @@ const Index = () => {
     setIsProcessing(true);
     try {
       const compressed = await compressImage(preview);
-      const upscaledUrl = await upscaleImage(compressed, prompt, 2);
+      const upscaledUrl = await upscaleImage(compressed, 2);
 
       setUpscaledUrl(upscaledUrl);
       addItem({ imageUrl: preview, resultUrl: upscaledUrl, prompt, tool: "upscale" });
