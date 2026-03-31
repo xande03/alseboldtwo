@@ -118,6 +118,12 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
     if (!prompt.trim() && !uploadedImage) return;
     setIsGenerating(true);
     setGeneratedUrl(null);
+    setProgress(0);
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setProgress((p) => Math.min(p + Math.random() * 15, 90));
+    }, 800);
 
     try {
       let imageBase64: string | undefined;
@@ -125,8 +131,10 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         imageBase64 = await compressImage(uploadedImage);
       }
 
-      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode, engine);
+      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode, engine, aspectRatio);
 
+      clearInterval(progressInterval);
+      setProgress(100);
       setGeneratedUrl(imageUrl);
       onResult?.(imageUrl, prompt);
       toast({ title: "Imagem gerada!", description: "Sua imagem foi criada com sucesso." });
@@ -134,7 +142,9 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
       console.error("Generate error:", err);
       toast({ title: "Erro na geração", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
+      clearInterval(progressInterval);
       setIsGenerating(false);
+      setProgress(0);
     }
   };
 
