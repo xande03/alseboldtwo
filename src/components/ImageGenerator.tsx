@@ -227,6 +227,11 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         </div>
       </motion.div>
 
+      {/* Aspect Ratio */}
+      <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.09 }}>
+        <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} disabled={isGenerating} />
+      </motion.div>
+
       {/* Prompt */}
       <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
         <label className="block text-sm font-medium text-foreground mb-2">Descreva a imagem que deseja gerar</label>
@@ -243,8 +248,25 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         </Button>
       </motion.div>
 
-      {/* Loading animation */}
-      {isGenerating && <GeneratingAnimation />}
+      {/* Loading animation with progress */}
+      <AnimatePresence>
+        {isGenerating && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <GeneratingAnimation />
+            <div className="px-4 mt-2">
+              <div className="relative h-2 w-full rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary/80 via-primary to-primary/80 rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-2">{Math.round(progress)}%</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {generatedUrl && (
         <motion.div className="glass-panel p-3 sm:p-4 space-y-3" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }}>
