@@ -1,10 +1,11 @@
 import { useState, useCallback } from "react";
 import { Sparkles, Download, Loader2, Brush, Layers, PenTool, Presentation, Monitor, Sticker, Unlock, BookOpen, UserCircle, Upload, X, Shield, ShieldOff, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { generateImage as generateImageApi, type ImageEngine } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import AspectRatioSelector, { type AspectRatioOption } from "./AspectRatioSelector";
 import GeneratingAnimation from "./GeneratingAnimation";
 
 type CreationMode = "livre" | "caricatura" | "logomarca" | "designer" | "slide" | "webui" | "adesivo" | "hq" | "anime" | "cartoon" | "avatar" | "lego";
@@ -54,9 +55,11 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
   const [prompt, setPrompt] = useState("");
   const [creationMode, setCreationMode] = useState<CreationMode>("livre");
   const [engine, setEngine] = useState<ImageEngine>("auto");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioOption>("original");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   const handleModeChange = useCallback((mode: CreationMode) => {
@@ -115,6 +118,12 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
     if (!prompt.trim() && !uploadedImage) return;
     setIsGenerating(true);
     setGeneratedUrl(null);
+    setProgress(0);
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setProgress((p) => Math.min(p + Math.random() * 15, 90));
+    }, 800);
 
     try {
       let imageBase64: string | undefined;
@@ -122,8 +131,10 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         imageBase64 = await compressImage(uploadedImage);
       }
 
-      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode, engine);
+      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode, engine, aspectRatio);
 
+      clearInterval(progressInterval);
+      setProgress(100);
       setGeneratedUrl(imageUrl);
       onResult?.(imageUrl, prompt);
       toast({ title: "Imagem gerada!", description: "Sua imagem foi criada com sucesso." });
@@ -131,7 +142,9 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
       console.error("Generate error:", err);
       toast({ title: "Erro na geração", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
+      clearInterval(progressInterval);
       setIsGenerating(false);
+      setProgress(0);
     }
   };
 
@@ -214,6 +227,11 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         </div>
       </motion.div>
 
+      {/* Aspect Ratio */}
+      <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.09 }}>
+        <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} disabled={isGenerating} />
+      </motion.div>
+
       {/* Prompt */}
       <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
         <label className="block text-sm font-medium text-foreground mb-2">Descreva a imagem que deseja gerar</label>
@@ -230,8 +248,25 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         </Button>
       </motion.div>
 
-      {/* Loading animation */}
-      {isGenerating && <GeneratingAnimation />}
+      {/* Loading animation with progress */}
+      <AnimatePresence>
+        {isGenerating && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <GeneratingAnimation />
+            <div className="px-4 mt-2">
+              <div className="relative h-2 w-full rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary/80 via-primary to-primary/80 rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-2">{Math.round(progress)}%</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {generatedUrl && (
         <motion.div className="glass-panel p-3 sm:p-4 space-y-3" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }}>
