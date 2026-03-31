@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
-import { Sparkles, Download, Loader2, Brush, Layers, PenTool, Presentation, Monitor, Sticker, Unlock, BookOpen, UserCircle, Upload, X } from "lucide-react";
+import { Sparkles, Download, Loader2, Brush, Layers, PenTool, Presentation, Monitor, Sticker, Unlock, BookOpen, UserCircle, Upload, X, Shield, ShieldOff, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import { generateImage as generateImageApi } from "@/lib/api";
+import { generateImage as generateImageApi, type ImageEngine } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ interface ImageGeneratorProps {
 const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
   const [prompt, setPrompt] = useState("");
   const [creationMode, setCreationMode] = useState<CreationMode>("livre");
+  const [engine, setEngine] = useState<ImageEngine>("auto");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -121,7 +122,7 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         imageBase64 = await compressImage(uploadedImage);
       }
 
-      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode);
+      const imageUrl = await generateImageApi(prompt.trim() || "Generate based on this image", creationMode, engine);
 
       setGeneratedUrl(imageUrl);
       onResult?.(imageUrl, prompt);
@@ -177,6 +178,37 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
               <mode.icon className="w-5 h-5" />
               <span className="text-xs font-medium">{mode.label}</span>
               <span className="text-[10px] opacity-70 leading-tight">{mode.description}</span>
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Engine Selector */}
+      <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
+        <label className="block text-sm font-medium text-foreground mb-3">Motor de Geração</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {([
+            { value: "auto" as ImageEngine, label: "Automático", icon: Zap, desc: "DALL-E com fallback Pollinations" },
+            { value: "dalle3" as ImageEngine, label: "DALL-E 3", icon: Shield, desc: "Alta qualidade · Com filtros de conteúdo" },
+            { value: "pollinations" as ImageEngine, label: "Pollinations", icon: ShieldOff, desc: "Sem restrições · Pessoas, cinema, política" },
+          ]).map((eng) => (
+            <motion.button
+              key={eng.value}
+              onClick={() => setEngine(eng.value)}
+              disabled={isGenerating}
+              className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-colors disabled:opacity-50 ${
+                engine === eng.value
+                  ? "bg-primary/15 border-primary/40 text-primary"
+                  : "bg-secondary/30 border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <eng.icon className="w-5 h-5 flex-shrink-0" />
+              <div>
+                <span className="text-xs font-medium block">{eng.label}</span>
+                <span className="text-[10px] opacity-70 leading-tight">{eng.desc}</span>
+              </div>
             </motion.button>
           ))}
         </div>

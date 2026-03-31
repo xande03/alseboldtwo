@@ -48,20 +48,24 @@ const modePrompts: Record<string, string> = {
   lego: "LEGO style, plastic texture, brick-built, primary colors",
 };
 
-export async function generateImage(prompt: string, creationMode = "livre"): Promise<string> {
+export type ImageEngine = "auto" | "dalle3" | "pollinations";
+
+export async function generateImage(prompt: string, creationMode = "livre", engine: ImageEngine = "auto"): Promise<string> {
   let finalPrompt = prompt;
   if (creationMode !== "livre" && modePrompts[creationMode]) {
     finalPrompt = `${prompt}, ${modePrompts[creationMode]}`;
   }
 
-  // Enhance prompt for better recognition of cultural/historical elements
   const enhancedPrompt = `${finalPrompt}. Ultra detailed, photorealistic where applicable, historically and culturally accurate, cinematic lighting`;
-
-  // Use Pollinations.ai as primary (no content restrictions - supports historical figures,
-  // movie characters, political figures, fauna, flora, cultural elements)
   const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${Date.now()}`;
 
-  // Try DALL-E 3 first for quality, fall back to Pollinations if blocked
+  // If user chose Pollinations explicitly (unrestricted), go directly
+  if (engine === "pollinations") {
+    addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, engine: "pollinations", timestamp: Date.now() });
+    return pollinationsUrl;
+  }
+
+  // If user chose DALL-E explicitly or auto, try DALL-E first
   try {
     const resp = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
@@ -79,19 +83,24 @@ export async function generateImage(prompt: string, creationMode = "livre"): Pro
     });
 
     if (!resp.ok) {
-      // If DALL-E blocks due to content policy, use Pollinations (unrestricted)
-      console.warn("DALL-E blocked or errored, using Pollinations (unrestricted)");
-      addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
+      if (engine === "dalle3") {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error?.message || `DALL-E error ${resp.status}`);
+      }
+      // Auto mode: fallback to Pollinations
+      console.warn("DALL-E blocked, falling back to Pollinations");
+      addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, engine: "pollinations", timestamp: Date.now() });
       return pollinationsUrl;
     }
 
     const data = await resp.json();
     const url = data.data[0].url;
-    addCachedItem("images", { url, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
+    addCachedItem("images", { url, prompt: finalPrompt, mode: creationMode, engine: "dalle3", timestamp: Date.now() });
     return url;
   } catch (e: any) {
-    console.warn("OpenAI failed, using Pollinations fallback:", e.message);
-    addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
+    if (engine === "dalle3") throw e;
+    console.warn("OpenAI failed, using Pollinations:", e.message);
+    addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, engine: "pollinations", timestamp: Date.now() });
     return pollinationsUrl;
   }
 }
