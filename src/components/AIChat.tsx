@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useToast } from "@/hooks/use-toast";
+import { chatWithAI, getCachedItems, addCachedItem, clearCache } from "@/lib/api";
 import {
   Select,
   SelectContent,
@@ -14,20 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-declare global {
-  interface Window {
-    puter: {
-      ai: {
-        chat: (
-          message: string | Array<{ role: string; content: string }>,
-          options?: { model?: string; stream?: boolean }
-        ) => Promise<any>;
-      };
-    };
-  }
-}
-
-type Model = "deepseek/deepseek-v3.2" | "claude-3-7-sonnet" | "gpt-oss-120b";
+type Model = "gpt-oss-120b" | "llama-3.3-70b";
 
 interface Message {
   id: string;
@@ -36,9 +24,8 @@ interface Message {
 }
 
 const modelLabels: Record<Model, string> = {
-  "deepseek/deepseek-v3.2": "DeepSeek v3.2",
-  "claude-3-7-sonnet": "Claude 3.7 Sonnet",
-  "gpt-oss-120b": "GPT-OSS 120B",
+  "gpt-oss-120b": "GPT-OSS 120B (Groq)",
+  "llama-3.3-70b": "Llama 3.3 70B (Groq)",
 };
 
 const CopyButton = ({ text }: { text: string }) => {
@@ -57,16 +44,17 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-const GROQ_API_KEY = "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";
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const CHAT_CACHE_KEY = "chat-history";
 
 const AIChat = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const cached = getCachedItems<Message>(CHAT_CACHE_KEY);
+    return cached.length > 0 ? cached : [];
+  });
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [model, setModel] = useState<Model>("deepseek/deepseek-v3.2");
+  const [model, setModel] = useState<Model>("gpt-oss-120b");
   const bottomRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
   const scrollToBottom = useCallback(() => {
@@ -75,57 +63,14 @@ const AIChat = () => {
 
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
-  const streamGroq = async (history: { role: string; content: string }[], assistantId: string) => {
-    const resp = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({ model: "openai/gpt-oss-120b", messages: [{ role: "system", content: "Você é um assistente de IA inteligente. Responda em português brasileiro." }, ...history], stream: true, max_tokens: 65536 }),
-    });
-
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => ({ error: "Erro na comunicação" }));
-      throw new Error(errData.error || `Erro ${resp.status}`);
+  // Save messages to cache when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem("alse-cache-" + CHAT_CACHE_KEY, JSON.stringify(messages.slice(-100)));
+      } catch {}
     }
-
-    if (!resp.body) throw new Error("Stream não disponível");
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let textBuffer = "";
-    let accumulated = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      textBuffer += decoder.decode(value, { stream: true });
-
-      let newlineIndex: number;
-      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-        let line = textBuffer.slice(0, newlineIndex);
-        textBuffer = textBuffer.slice(newlineIndex + 1);
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (line.startsWith(":") || line.trim() === "") continue;
-        if (!line.startsWith("data: ")) continue;
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") break;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) {
-            accumulated += content;
-            const current = accumulated;
-            setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: current } : m)));
-          }
-        } catch {
-          textBuffer = line + "\n" + textBuffer;
-          break;
-        }
-      }
-    }
-  };
+  }, [messages]);
 
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -140,24 +85,23 @@ const AIChat = () => {
 
     try {
       const history = [...messages, userMsg].map((m) => ({ role: m.role, content: m.content }));
+      let accumulated = "";
 
-      if (model === "gpt-oss-120b") {
-        await streamGroq(history, assistantMsg.id);
-      } else {
-        const response = await window.puter.ai.chat(history, { model, stream: true });
-        let accumulated = "";
-        for await (const part of response) {
-          const token = part?.text ?? "";
+      await chatWithAI(
+        history,
+        model,
+        (token) => {
           accumulated += token;
           const current = accumulated;
           setMessages((prev) => prev.map((m) => (m.id === assistantMsg.id ? { ...m, content: current } : m)));
-        }
-      }
+        },
+        () => {}
+      );
     } catch (err: any) {
       console.error("Chat error:", err);
       const errorMsg = err.message || "Falha na comunicação com a IA.";
       setMessages((prev) => prev.map((m) => (m.id === assistantMsg.id ? { ...m, content: `Erro: ${errorMsg}` } : m)));
-      if (err.message?.includes("429") || err.message?.includes("Limite")) {
+      if (err.message?.includes("429")) {
         toast({ title: "Limite excedido", description: "Aguarde alguns instantes e tente novamente.", variant: "destructive" });
       }
     } finally {
@@ -169,19 +113,21 @@ const AIChat = () => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const clearChat = () => setMessages([]);
+  const clearChat = () => {
+    setMessages([]);
+    clearCache(CHAT_CACHE_KEY);
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[800px]">
       <div className="glass-panel p-3 sm:p-4 mb-4 flex items-center justify-between gap-3">
         <Select value={model} onValueChange={(v) => setModel(v as Model)}>
-          <SelectTrigger className="w-[200px] sm:w-[240px]">
+          <SelectTrigger className="w-[200px] sm:w-[260px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="deepseek/deepseek-v3.2">🧠 DeepSeek v3.2</SelectItem>
-            <SelectItem value="claude-3-7-sonnet">🎯 Claude 3.7 Sonnet</SelectItem>
             <SelectItem value="gpt-oss-120b">🚀 GPT-OSS 120B</SelectItem>
+            <SelectItem value="llama-3.3-70b">🧠 Llama 3.3 70B</SelectItem>
           </SelectContent>
         </Select>
         <Button variant="ghost" size="sm" onClick={clearChat} disabled={messages.length === 0 || isStreaming} className="text-muted-foreground hover:text-destructive">
@@ -197,7 +143,7 @@ const AIChat = () => {
               <Bot className="w-12 h-12 opacity-30" />
               <div>
                 <p className="text-base font-medium">Chat com IA</p>
-                <p className="text-sm mt-1">Usando <span className="font-semibold">{modelLabels[model]}</span></p>
+                <p className="text-sm mt-1">Usando <span className="font-semibold">{modelLabels[model]}</span> via Groq</p>
                 <p className="text-xs mt-2 max-w-sm opacity-70">Envie uma mensagem para começar. Shift+Enter para nova linha.</p>
               </div>
             </div>
@@ -244,7 +190,7 @@ const AIChat = () => {
 
         <div className="border-t border-border/40 p-3 sm:p-4">
           <div className="flex gap-2 items-end">
-            <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Digite sua mensagem..." disabled={isStreaming} className="min-h-[44px] max-h-[120px] resize-none text-sm" rows={1} />
+            <Textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Digite sua mensagem..." disabled={isStreaming} className="min-h-[44px] max-h-[120px] resize-none text-sm" rows={1} />
             <Button onClick={handleSend} disabled={!input.trim() || isStreaming} size="icon" className="flex-shrink-0 h-[44px] w-[44px]">
               {isStreaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
