@@ -50,14 +50,37 @@ const modePrompts: Record<string, string> = {
 
 export type ImageEngine = "auto" | "dalle3" | "pollinations";
 
-export async function generateImage(prompt: string, creationMode = "livre", engine: ImageEngine = "auto"): Promise<string> {
+const aspectRatioSizes: Record<string, string> = {
+  "original": "1024x1024",
+  "1:1": "1024x1024",
+  "16:9": "1792x1024",
+  "9:16": "1024x1792",
+  "4:3": "1792x1024",
+  "3:4": "1024x1792",
+  "3:2": "1792x1024",
+  "2:3": "1024x1792",
+};
+
+const pollinationsSizes: Record<string, { w: number; h: number }> = {
+  "original": { w: 1024, h: 1024 },
+  "1:1": { w: 1024, h: 1024 },
+  "16:9": { w: 1344, h: 756 },
+  "9:16": { w: 756, h: 1344 },
+  "4:3": { w: 1200, h: 900 },
+  "3:4": { w: 900, h: 1200 },
+  "3:2": { w: 1200, h: 800 },
+  "2:3": { w: 800, h: 1200 },
+};
+
+export async function generateImage(prompt: string, creationMode = "livre", engine: ImageEngine = "auto", aspectRatio = "original"): Promise<string> {
   let finalPrompt = prompt;
   if (creationMode !== "livre" && modePrompts[creationMode]) {
     finalPrompt = `${prompt}, ${modePrompts[creationMode]}`;
   }
 
   const enhancedPrompt = `${finalPrompt}. Ultra detailed, photorealistic where applicable, historically and culturally accurate, cinematic lighting`;
-  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${Date.now()}`;
+  const pollSize = pollinationsSizes[aspectRatio] || pollinationsSizes["original"];
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=${pollSize.w}&height=${pollSize.h}&nologo=true&seed=${Date.now()}`;
 
   // If user chose Pollinations explicitly (unrestricted), go directly
   if (engine === "pollinations") {
