@@ -185,9 +185,9 @@ const Index = () => {
                 </motion.div>
               )}
 
-              {(activeView as string) === "imagetoqr" && (
+              {activeView === "imagetoqr" && (
                 <motion.div key="imagetoqr" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-                  <ImageToQR onResult={(resultUrl, prompt) => addItem({ imageUrl: resultUrl, resultUrl, prompt, tool: "imagetoqr" as ToolView })} />
+                  <ImageToQR onResult={(resultUrl, prompt) => addItem({ imageUrl: resultUrl, resultUrl, prompt, tool: "imagetoqr" })} />
                 </motion.div>
               )}
 
