@@ -54,6 +54,14 @@ export async function generateImage(prompt: string, creationMode = "livre"): Pro
     finalPrompt = `${prompt}, ${modePrompts[creationMode]}`;
   }
 
+  // Enhance prompt for better recognition of cultural/historical elements
+  const enhancedPrompt = `${finalPrompt}. Ultra detailed, photorealistic where applicable, historically and culturally accurate, cinematic lighting`;
+
+  // Use Pollinations.ai as primary (no content restrictions - supports historical figures,
+  // movie characters, political figures, fauna, flora, cultural elements)
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${Date.now()}`;
+
+  // Try DALL-E 3 first for quality, fall back to Pollinations if blocked
   try {
     const resp = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
@@ -71,22 +79,20 @@ export async function generateImage(prompt: string, creationMode = "livre"): Pro
     });
 
     if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error?.message || `OpenAI error ${resp.status}`);
+      // If DALL-E blocks due to content policy, use Pollinations (unrestricted)
+      console.warn("DALL-E blocked or errored, using Pollinations (unrestricted)");
+      addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
+      return pollinationsUrl;
     }
 
     const data = await resp.json();
     const url = data.data[0].url;
-
-    // Cache result
     addCachedItem("images", { url, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
-
     return url;
   } catch (e: any) {
     console.warn("OpenAI failed, using Pollinations fallback:", e.message);
-    const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&nologo=true`;
-    addCachedItem("images", { url: fallbackUrl, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
-    return fallbackUrl;
+    addCachedItem("images", { url: pollinationsUrl, prompt: finalPrompt, mode: creationMode, timestamp: Date.now() });
+    return pollinationsUrl;
   }
 }
 
