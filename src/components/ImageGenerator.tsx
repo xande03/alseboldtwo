@@ -183,6 +183,37 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
         </div>
       </motion.div>
 
+      {/* Engine Selector */}
+      <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
+        <label className="block text-sm font-medium text-foreground mb-3">Motor de Geração</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {([
+            { value: "auto" as ImageEngine, label: "Automático", icon: Zap, desc: "DALL-E com fallback Pollinations" },
+            { value: "dalle3" as ImageEngine, label: "DALL-E 3", icon: Shield, desc: "Alta qualidade · Com filtros de conteúdo" },
+            { value: "pollinations" as ImageEngine, label: "Pollinations", icon: ShieldOff, desc: "Sem restrições · Pessoas, cinema, política" },
+          ]).map((eng) => (
+            <motion.button
+              key={eng.value}
+              onClick={() => setEngine(eng.value)}
+              disabled={isGenerating}
+              className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-colors disabled:opacity-50 ${
+                engine === eng.value
+                  ? "bg-primary/15 border-primary/40 text-primary"
+                  : "bg-secondary/30 border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <eng.icon className="w-5 h-5 flex-shrink-0" />
+              <div>
+                <span className="text-xs font-medium block">{eng.label}</span>
+                <span className="text-[10px] opacity-70 leading-tight">{eng.desc}</span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
       {/* Prompt */}
       <motion.div className="glass-panel p-4 sm:p-5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
         <label className="block text-sm font-medium text-foreground mb-2">Descreva a imagem que deseja gerar</label>
