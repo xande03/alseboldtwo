@@ -100,7 +100,7 @@ export async function generateImage(prompt: string, creationMode = "livre", engi
         model: "dall-e-3",
         prompt: finalPrompt,
         n: 1,
-        size: "1024x1024",
+        size: (aspectRatioSizes[aspectRatio] || "1024x1024") as "1024x1024" | "1792x1024" | "1024x1792",
         quality: "standard",
       }),
     });
