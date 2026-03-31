@@ -3,7 +3,8 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowUpCircle, Eraser, Sparkles, Wand2, QrCode, Music,
   MessageCircle, FileOutput, ArrowRight, Send,
-  Zap, Upload, Download, Star, Shield, Clock, Users
+  Zap, Upload, Download, Star, Shield, Clock, Users,
+  CheckCircle, Image, FileText, PenLine, Film
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import alseHeroBg from "@/assets/alse-hero-bg.jpg";
@@ -11,27 +12,40 @@ import alseHeroBg from "@/assets/alse-hero-bg.jpg";
 const TELEGRAM_URL = "https://t.me/alsebold01_bot?start=1";
 
 const tools = [
-  { icon: MessageCircle, label: "Chat IA", desc: "Converse com IA para criar conteúdo, tirar dúvidas e muito mais.", color: "hsl(var(--tool-chat))", tag: "Popular" },
-  { icon: Sparkles, label: "Gerar Imagem", desc: "Crie imagens únicas a partir de texto com inteligência artificial.", color: "hsl(var(--tool-generate))", tag: "Novo" },
-  { icon: ArrowUpCircle, label: "Upscale", desc: "Aumente a resolução e qualidade das suas imagens com IA.", color: "hsl(var(--tool-upscale))", tag: null },
-  { icon: Eraser, label: "Remover Fundo", desc: "Remova fundos automaticamente com precisão profissional.", color: "hsl(var(--tool-bgremove))", tag: null },
-  { icon: Wand2, label: "Editar Imagem", desc: "Transforme imagens com comandos em linguagem natural.", color: "hsl(var(--tool-edit))", tag: null },
-  { icon: QrCode, label: "QR Code", desc: "Gere QR Codes estilizados para links, textos e mais.", color: "hsl(var(--tool-qrcode))", tag: null },
-  { icon: Music, label: "Music DNA", desc: "Descubra tudo sobre qualquer música ou artista.", color: "hsl(var(--tool-musicdna))", tag: null },
-  { icon: FileOutput, label: "Conversor", desc: "Converta documentos entre PDF, Word e outros formatos.", color: "hsl(var(--tool-converter))", tag: null },
+  { icon: MessageCircle, label: "Chat IA", desc: "Converse com modelos avançados (Llama 3.3 70B via Groq) para criar conteúdo, programar e tirar dúvidas.", color: "hsl(var(--tool-chat))", tag: "Popular", tech: "Groq API" },
+  { icon: Sparkles, label: "Gerar Imagem", desc: "Crie imagens a partir de texto com DALL-E 3 da OpenAI, com fallback automático via Pollinations.ai.", color: "hsl(var(--tool-generate))", tag: "Novo", tech: "DALL-E 3" },
+  { icon: ArrowUpCircle, label: "Upscale", desc: "Aumente resolução e qualidade de imagens usando reimaginação por IA com DALL-E 3.", color: "hsl(var(--tool-upscale))", tag: null, tech: "OpenAI" },
+  { icon: Eraser, label: "Remover Fundo", desc: "Remoção de fundo com processamento Canvas — ideal para fotos de produtos e retratos.", color: "hsl(var(--tool-bgremove))", tag: null, tech: "Canvas API" },
+  { icon: Wand2, label: "Editar Imagem", desc: "Transforme imagens com comandos em linguagem natural usando GPT-4o + DALL-E 3.", color: "hsl(var(--tool-edit))", tag: null, tech: "GPT-4o" },
+  { icon: QrCode, label: "QR Code", desc: "Gere QR Codes customizados para links, textos, Wi-Fi e mais, com biblioteca qrcode.js.", color: "hsl(var(--tool-qrcode))", tag: null, tech: "qrcode.js" },
+  { icon: Music, label: "Music DNA", desc: "Analise qualquer música ou artista com IA — gênero, BPM, tom, letras e curiosidades.", color: "hsl(var(--tool-musicdna))", tag: null, tech: "Groq AI" },
+  { icon: FileOutput, label: "Conversor", desc: "Converta documentos entre PDF, DOCX e TXT direto no navegador com jsPDF e docx.", color: "hsl(var(--tool-converter))", tag: null, tech: "jsPDF / docx" },
+  { icon: FileText, label: "Resumidor IA", desc: "Resuma textos longos instantaneamente usando Llama 3.3 70B via Groq.", color: "hsl(var(--tool-chat))", tag: null, tech: "Groq AI" },
+  { icon: PenLine, label: "Assinatura", desc: "Crie assinaturas digitais personalizadas com Canvas para documentos e e-mails.", color: "hsl(var(--tool-qrcode))", tag: null, tech: "Canvas" },
+  { icon: Film, label: "Video Frames", desc: "Gere sequências de frames para vídeos com IA, ideal para storyboards e animações.", color: "hsl(var(--tool-upscale))", tag: null, tech: "DALL-E 3" },
+  { icon: Image, label: "Imagem→QR", desc: "Transforme qualquer imagem em um QR Code artístico e funcional.", color: "hsl(var(--tool-edit))", tag: null, tech: "qrcode.js" },
 ];
 
 const steps = [
-  { icon: Zap, title: "Escolha a ferramenta", desc: "Selecione entre 8+ ferramentas de IA disponíveis.", num: "01" },
-  { icon: Upload, title: "Envie ou descreva", desc: "Faça upload de arquivos ou descreva o que precisa.", num: "02" },
-  { icon: Download, title: "Receba o resultado", desc: "Baixe seu conteúdo processado em segundos.", num: "03" },
+  { icon: Zap, title: "Escolha a ferramenta", desc: "12 ferramentas de IA disponíveis — chat, imagem, áudio, documentos e mais.", num: "01" },
+  { icon: Upload, title: "Envie ou descreva", desc: "Faça upload de arquivos ou descreva em português o que precisa.", num: "02" },
+  { icon: Download, title: "Receba o resultado", desc: "Baixe seu conteúdo processado em segundos, sem cadastro.", num: "03" },
 ];
 
 const stats = [
-  { icon: Users, value: "10K+", label: "Usuários ativos" },
-  { icon: Star, value: "50K+", label: "Imagens geradas" },
+  { icon: Users, value: "12", label: "Ferramentas de IA" },
+  { icon: Star, value: "5", label: "APIs integradas" },
   { icon: Shield, value: "100%", label: "Gratuito" },
   { icon: Clock, value: "<5s", label: "Tempo médio" },
+];
+
+const techStack = [
+  { name: "OpenAI DALL-E 3", desc: "Geração e edição de imagens" },
+  { name: "GPT-4o Vision", desc: "Análise e descrição de imagens" },
+  { name: "Groq (Llama 3.3 70B)", desc: "Chat IA e resumos ultra-rápidos" },
+  { name: "Pollinations.ai", desc: "Fallback gratuito para imagens" },
+  { name: "Canvas API", desc: "Processamento local de imagens" },
+  { name: "jsPDF / docx", desc: "Conversão de documentos no browser" },
 ];
 
 const fadeUp = {
@@ -86,7 +100,7 @@ const Landing = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-8 backdrop-blur-sm">
-              <Zap className="w-3.5 h-3.5" /> Plataforma brasileira de IA criativa
+              <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
             </span>
           </motion.div>
           <motion.h1
@@ -102,7 +116,7 @@ const Landing = () => {
             className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16, duration: 0.6 }}
           >
-            Gere imagens, remova fundos, crie QR Codes e converse com IA — tudo em português, grátis e direto no navegador ou Telegram.
+            Gere imagens com DALL-E 3, converse com Llama 3.3, remova fundos, crie QR Codes e mais — tudo em português, grátis e direto no navegador ou Telegram.
           </motion.p>
           <motion.div
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
@@ -142,14 +156,14 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Features — all 12 tools */}
       <section className="py-16 sm:py-24 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <motion.div className="text-center mb-12" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-3">Tudo o que você precisa</h2>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">Ferramentas profissionais de IA, feitas para o dia a dia do brasileiro.</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-3">12 ferramentas reais, funcionando agora</h2>
+            <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">Cada ferramenta usa APIs reais — OpenAI, Groq, Canvas API e mais.</p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {tools.map((tool, i) => (
               <motion.div
                 key={tool.label}
@@ -162,11 +176,43 @@ const Landing = () => {
                     {tool.tag}
                   </span>
                 )}
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: `${tool.color}15` }}>
-                  <tool.icon className="w-5 h-5" style={{ color: tool.color }} />
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: `${tool.color}15` }}>
+                    <tool.icon className="w-5 h-5" style={{ color: tool.color }} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display font-semibold text-base mb-1">{tool.label}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-2">{tool.desc}</p>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary/70 bg-primary/5 px-2 py-0.5 rounded-full">
+                      <CheckCircle className="w-3 h-3" /> {tool.tech}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="font-display font-semibold text-base mb-1.5">{tool.label}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{tool.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tech Stack */}
+      <section className="py-16 sm:py-24 relative z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <motion.div className="text-center mb-12" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-3">Tecnologias reais por trás</h2>
+            <p className="text-muted-foreground text-base sm:text-lg">Sem marketing vazio — veja exatamente o que alimenta cada ferramenta.</p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {techStack.map((tech, i) => (
+              <motion.div
+                key={tech.name}
+                className="flex items-center gap-3 p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/30"
+                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+              >
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <div>
+                  <div className="font-semibold text-sm text-foreground">{tech.name}</div>
+                  <div className="text-xs text-muted-foreground">{tech.desc}</div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -213,7 +259,7 @@ const Landing = () => {
               </div>
               <h2 className="font-display text-2xl sm:text-3xl font-bold mb-3">Use também no Telegram</h2>
               <p className="text-muted-foreground text-base mb-8 max-w-md mx-auto">
-                Acesse todas as ferramentas direto pelo Telegram. Sem cadastro, sem complicação — é só mandar mensagem.
+                Acesse todas as 12 ferramentas direto pelo Telegram. Sem cadastro, sem complicação — é só mandar mensagem.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button size="lg" asChild className="text-base px-8 gap-2 shadow-lg shadow-primary/20">
@@ -238,7 +284,7 @@ const Landing = () => {
             <span className="font-display font-semibold text-sm">Alse Bold</span>
             <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>
           </div>
-          <p className="text-xs text-muted-foreground">Feito no Brasil 🇧🇷 — Ferramentas de IA para todos.</p>
+          <p className="text-xs text-muted-foreground">Feito no Brasil 🇧🇷 — 12 ferramentas de IA reais, 100% gratuitas.</p>
         </div>
       </footer>
     </div>

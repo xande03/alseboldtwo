@@ -89,6 +89,7 @@ const Index = () => {
     generate: "Gerar Imagem",
     edit: "Editar Imagem",
     qrcode: "QR Code Generator",
+    imagetoqr: "Imagem para QR",
     musicdna: "Music DNA",
     chat: "Chat IA",
     converter: "Conversor de Documentos",
