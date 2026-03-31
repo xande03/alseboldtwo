@@ -70,7 +70,7 @@ const Index = () => {
     setIsProcessing(true);
     try {
       const compressed = await compressImage(preview);
-      const upscaledUrl = await upscaleImage(compressed, prompt);
+      const upscaledUrl = await upscaleImage(compressed, 2);
 
       setUpscaledUrl(upscaledUrl);
       addItem({ imageUrl: preview, resultUrl: upscaledUrl, prompt, tool: "upscale" });
@@ -89,6 +89,7 @@ const Index = () => {
     generate: "Gerar Imagem",
     edit: "Editar Imagem",
     qrcode: "QR Code Generator",
+    imagetoqr: "Imagem para QR",
     musicdna: "Music DNA",
     chat: "Chat IA",
     converter: "Conversor de Documentos",

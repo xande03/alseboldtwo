@@ -5,7 +5,7 @@ export interface SessionHistoryItem {
   imageUrl: string;
   resultUrl: string;
   prompt: string;
-  tool: "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "musicdna" | "chat" | "converter" | "summarizer" | "signature" | "videoframes" | "gallery";
+  tool: "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "imagetoqr" | "musicdna" | "chat" | "converter" | "summarizer" | "signature" | "videoframes" | "gallery";
   timestamp: number;
 }
 
