@@ -136,9 +136,10 @@ Deno.serve(async (req: Request) => {
         console.log('Text extracted successfully:', extractedText.substring(0, 100) + '...');
       } catch (extractError) {
         console.error('Text extraction failed:', extractError);
-        // Fallback: usar a própria imagem como conteúdo
-        qrContent = imageBase64;
-        method = 'Image as QR content (fallback)';
+        // Fallback: usar mensagem padrão
+        extractedText = 'Texto não pôde ser extraído da imagem';
+        qrContent = 'Image content - text extraction failed';
+        method = 'Text extraction failed (fallback)';
       }
     } else {
       // Usar a imagem diretamente como conteúdo do QR
