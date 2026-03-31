@@ -55,9 +55,11 @@ const ImageGenerator = ({ onResult }: ImageGeneratorProps) => {
   const [prompt, setPrompt] = useState("");
   const [creationMode, setCreationMode] = useState<CreationMode>("livre");
   const [engine, setEngine] = useState<ImageEngine>("auto");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioOption>("original");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   const handleModeChange = useCallback((mode: CreationMode) => {
