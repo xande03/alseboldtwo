@@ -7,6 +7,7 @@ import {
   CheckCircle, Image, FileText, PenLine, Film
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 import alseHeroBg from "@/assets/alse-hero-bg.jpg";
 
 const TELEGRAM_URL = "https://t.me/alsebold01_bot?start=1";
