@@ -7,6 +7,7 @@ import {
   CheckCircle, Image, FileText, PenLine, Film
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 import alseHeroBg from "@/assets/alse-hero-bg.jpg";
 
 const TELEGRAM_URL = "https://t.me/alsebold01_bot?start=1";
@@ -83,6 +84,7 @@ const Landing = () => {
             <span className="font-display text-xl font-bold tracking-tight">Alse Bold</span>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={() => navigate("/app")} className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
               Web App
             </Button>
