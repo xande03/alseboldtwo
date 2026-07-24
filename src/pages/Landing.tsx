@@ -83,6 +83,7 @@ const Landing = () => {
             <span className="font-display text-xl font-bold tracking-tight">Alse Bold</span>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={() => navigate("/app")} className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
               Web App
             </Button>
