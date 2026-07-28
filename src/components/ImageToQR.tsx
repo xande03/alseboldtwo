@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { QrCode, Download, Loader2, Upload, Image, FileText, Zap } from "lucide-react";
+import { QrCode, Download, Loader2, Upload, Image, FileText, Zap, Palette, ImagePlus, X, Maximize } from "lucide-react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
 import { ocrScan } from "@/lib/api";
@@ -7,7 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import GeneratingAnimation from "./GeneratingAnimation";
+
+const sizes = [256, 512, 1024, 2048];
 
 interface ImageToQRProps {
   onResult?: (resultUrl: string, prompt: string) => void;
@@ -25,7 +28,14 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
     extractedText?: string;
     message: string;
   } | null>(null);
+  const [fgColor, setFgColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [size, setSize] = useState(512);
+  const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState(22);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +80,65 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
     });
   };
 
+  const overlayLogo = (qrDataUrl: string, logoSrc: string, logoPercent: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const qrImg = new window.Image();
+      qrImg.crossOrigin = "anonymous";
+      qrImg.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = qrImg.width;
+        canvas.height = qrImg.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(qrImg, 0, 0);
+
+        const logoImg = new window.Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.onload = () => {
+          const maxLogoSize = Math.round(canvas.width * (logoPercent / 100));
+          const scale = Math.min(1, maxLogoSize / Math.max(logoImg.width, logoImg.height));
+          const lw = Math.round(logoImg.width * scale);
+          const lh = Math.round(logoImg.height * scale);
+          const x = Math.round((canvas.width - lw) / 2);
+          const y = Math.round((canvas.height - lh) / 2);
+
+          const padding = Math.round(lw * 0.12);
+          ctx.fillStyle = bgColor;
+          ctx.beginPath();
+          ctx.roundRect(x - padding, y - padding, lw + padding * 2, lh + padding * 2, padding / 2);
+          ctx.fill();
+
+          ctx.drawImage(logoImg, x, y, lw, lh);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        logoImg.onerror = reject;
+        logoImg.src = logoSrc;
+      };
+      qrImg.onerror = reject;
+      qrImg.src = qrDataUrl;
+    });
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Logo muito grande", description: "Máximo de 2MB.", variant: "destructive" });
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Arquivo inválido", description: "Selecione uma imagem.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoImage(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    setLogoImage(null);
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  };
+
   const handleGenerate = async () => {
     if (!selectedImage || !imagePreview) {
       toast({ title: "Erro", description: "Selecione uma imagem primeiro.", variant: "destructive" });
@@ -108,17 +177,21 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
       }
 
       // Generate QR code client-side
-      const qrCodeUrl = await QRCode.toDataURL(qrData, {
-        width: 512,
+      let qrCodeUrl = await QRCode.toDataURL(qrData, {
+        width: size,
         margin: 2,
-        errorCorrectionLevel: "M",
-        color: { dark: "#000000", light: "#ffffff" },
+        errorCorrectionLevel: "H",
+        color: { dark: fgColor, light: bgColor },
       });
+
+      if (logoImage) {
+        qrCodeUrl = await overlayLogo(qrCodeUrl, logoImage, logoSize);
+      }
 
       const result = {
         qrCodeUrl,
         method,
-        size: 512,
+        size,
         extractedText,
         message: "QR Code gerado com sucesso!",
       };
@@ -185,6 +258,112 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
             <FileText className="w-4 h-4 inline mr-2" />
             Extrair texto da imagem (recomendado)
           </Label>
+        </div>
+
+        {/* Advanced customization */}
+        <div className="border border-border/50 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full flex items-center justify-between p-3 text-sm font-medium text-foreground hover:bg-secondary/40 transition-colors"
+          >
+            <span className="flex items-center gap-2"><Palette className="w-4 h-4" /> Personalizar aparência</span>
+            <span className="text-xs text-muted-foreground">{showAdvanced ? "Ocultar" : "Expandir"}</span>
+          </button>
+
+          {showAdvanced && (
+            <div className="p-4 space-y-5 border-t border-border/50">
+              {/* Colors */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="imgqr-fg" className="text-xs text-muted-foreground">Cor do QR</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="imgqr-fg"
+                      type="color"
+                      value={fgColor}
+                      onChange={(e) => setFgColor(e.target.value)}
+                      className="w-9 h-9 rounded-lg border border-border/50 bg-transparent cursor-pointer"
+                    />
+                    <span className="text-xs font-mono uppercase">{fgColor}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imgqr-bg" className="text-xs text-muted-foreground">Cor de fundo</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="imgqr-bg"
+                      type="color"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-9 h-9 rounded-lg border border-border/50 bg-transparent cursor-pointer"
+                    />
+                    <span className="text-xs font-mono uppercase">{bgColor}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Size */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-2"><Maximize className="w-3.5 h-3.5" /> Tamanho da imagem</Label>
+                  <span className="text-xs font-mono">{size}px</span>
+                </div>
+                <div className="flex gap-2">
+                  {sizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSize(s)}
+                      className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
+                        size === s ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/30 border-border/50 hover:border-border"
+                      }`}
+                    >
+                      {s}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Logo */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-2"><ImagePlus className="w-3.5 h-3.5" /> Logo no centro</Label>
+                  {logoImage && (
+                    <button type="button" onClick={removeLogo} className="text-xs text-destructive hover:underline flex items-center gap-1">
+                      <X className="w-3 h-3" /> Remover
+                    </button>
+                  )}
+                </div>
+
+                <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+
+                {!logoImage ? (
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="w-full py-3 border-2 border-dashed border-border/50 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-border transition-colors flex flex-col items-center gap-1"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Adicionar logo (máx. 2MB)
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex justify-center">
+                      <img src={logoImage} alt="Logo preview" className="h-16 w-auto object-contain rounded-lg border border-border/50 p-1 bg-secondary/30" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Tamanho do logo</span>
+                        <span>{logoSize}%</span>
+                      </div>
+                      <Slider value={[logoSize]} onValueChange={(v) => setLogoSize(v[0])} min={8} max={40} step={1} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <Button onClick={handleGenerate} disabled={!canGenerate} className="w-full h-12 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
