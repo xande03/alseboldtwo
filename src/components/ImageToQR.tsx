@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { QrCode, Download, Loader2, Upload, Image, FileText, Zap } from "lucide-react";
+import { QrCode, Download, Loader2, Upload, Image, FileText, Zap, Palette, ImagePlus, X, Maximize } from "lucide-react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
 import { ocrScan } from "@/lib/api";
@@ -7,7 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import GeneratingAnimation from "./GeneratingAnimation";
+
+const sizes = [256, 512, 1024, 2048];
 
 interface ImageToQRProps {
   onResult?: (resultUrl: string, prompt: string) => void;
@@ -25,7 +28,14 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
     extractedText?: string;
     message: string;
   } | null>(null);
+  const [fgColor, setFgColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [size, setSize] = useState(512);
+  const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState(22);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
