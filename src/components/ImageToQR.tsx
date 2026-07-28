@@ -260,6 +260,112 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
           </Label>
         </div>
 
+        {/* Advanced customization */}
+        <div className="border border-border/50 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full flex items-center justify-between p-3 text-sm font-medium text-foreground hover:bg-secondary/40 transition-colors"
+          >
+            <span className="flex items-center gap-2"><Palette className="w-4 h-4" /> Personalizar aparência</span>
+            <span className="text-xs text-muted-foreground">{showAdvanced ? "Ocultar" : "Expandir"}</span>
+          </button>
+
+          {showAdvanced && (
+            <div className="p-4 space-y-5 border-t border-border/50">
+              {/* Colors */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="imgqr-fg" className="text-xs text-muted-foreground">Cor do QR</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="imgqr-fg"
+                      type="color"
+                      value={fgColor}
+                      onChange={(e) => setFgColor(e.target.value)}
+                      className="w-9 h-9 rounded-lg border border-border/50 bg-transparent cursor-pointer"
+                    />
+                    <span className="text-xs font-mono uppercase">{fgColor}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imgqr-bg" className="text-xs text-muted-foreground">Cor de fundo</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="imgqr-bg"
+                      type="color"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-9 h-9 rounded-lg border border-border/50 bg-transparent cursor-pointer"
+                    />
+                    <span className="text-xs font-mono uppercase">{bgColor}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Size */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-2"><Maximize className="w-3.5 h-3.5" /> Tamanho da imagem</Label>
+                  <span className="text-xs font-mono">{size}px</span>
+                </div>
+                <div className="flex gap-2">
+                  {sizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSize(s)}
+                      className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
+                        size === s ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/30 border-border/50 hover:border-border"
+                      }`}
+                    >
+                      {s}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Logo */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-2"><ImagePlus className="w-3.5 h-3.5" /> Logo no centro</Label>
+                  {logoImage && (
+                    <button type="button" onClick={removeLogo} className="text-xs text-destructive hover:underline flex items-center gap-1">
+                      <X className="w-3 h-3" /> Remover
+                    </button>
+                  )}
+                </div>
+
+                <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+
+                {!logoImage ? (
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="w-full py-3 border-2 border-dashed border-border/50 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-border transition-colors flex flex-col items-center gap-1"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Adicionar logo (máx. 2MB)
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex justify-center">
+                      <img src={logoImage} alt="Logo preview" className="h-16 w-auto object-contain rounded-lg border border-border/50 p-1 bg-secondary/30" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Tamanho do logo</span>
+                        <span>{logoSize}%</span>
+                      </div>
+                      <Slider value={[logoSize]} onValueChange={(v) => setLogoSize(v[0])} min={8} max={40} step={1} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <Button onClick={handleGenerate} disabled={!canGenerate} className="w-full h-12 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
           {isGenerating ? (
             <>
