@@ -1,10 +1,13 @@
 import { useState, useRef } from "react";
-import { QrCode, Download, Loader2, FileText, Link, Type, File, Upload } from "lucide-react";
+import { QrCode, Download, Loader2, FileText, Link, Type, Upload, Palette, ImagePlus, X, Maximize } from "lucide-react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import GeneratingAnimation from "./GeneratingAnimation";
 
 type Category = "text" | "url";
@@ -13,6 +16,8 @@ const categories: { value: Category; label: string; icon: typeof FileText; descr
   { value: "text", label: "Texto", icon: Type, description: "Texto simples ou dados" },
   { value: "url", label: "Link/URL", icon: Link, description: "Links da web ou URLs" },
 ];
+
+const sizes = [256, 512, 1024, 2048];
 
 interface QRCodeGeneratorProps {
   onResult?: (resultUrl: string, prompt: string) => void;
@@ -23,6 +28,13 @@ const QRCodeGenerator = ({ onResult }: QRCodeGeneratorProps) => {
   const [textContent, setTextContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [qrResult, setQrResult] = useState<{ qrCodeUrl: string; content: string } | null>(null);
+  const [fgColor, setFgColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [size, setSize] = useState(512);
+  const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState(22);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
