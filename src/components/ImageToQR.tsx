@@ -177,17 +177,21 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
       }
 
       // Generate QR code client-side
-      const qrCodeUrl = await QRCode.toDataURL(qrData, {
-        width: 512,
+      let qrCodeUrl = await QRCode.toDataURL(qrData, {
+        width: size,
         margin: 2,
-        errorCorrectionLevel: "M",
-        color: { dark: "#000000", light: "#ffffff" },
+        errorCorrectionLevel: "H",
+        color: { dark: fgColor, light: bgColor },
       });
+
+      if (logoImage) {
+        qrCodeUrl = await overlayLogo(qrCodeUrl, logoImage, logoSize);
+      }
 
       const result = {
         qrCodeUrl,
         method,
-        size: 512,
+        size,
         extractedText,
         message: "QR Code gerado com sucesso!",
       };
