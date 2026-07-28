@@ -80,6 +80,65 @@ const ImageToQR = ({ onResult }: ImageToQRProps) => {
     });
   };
 
+  const overlayLogo = (qrDataUrl: string, logoSrc: string, logoPercent: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const qrImg = new window.Image();
+      qrImg.crossOrigin = "anonymous";
+      qrImg.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = qrImg.width;
+        canvas.height = qrImg.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(qrImg, 0, 0);
+
+        const logoImg = new window.Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.onload = () => {
+          const maxLogoSize = Math.round(canvas.width * (logoPercent / 100));
+          const scale = Math.min(1, maxLogoSize / Math.max(logoImg.width, logoImg.height));
+          const lw = Math.round(logoImg.width * scale);
+          const lh = Math.round(logoImg.height * scale);
+          const x = Math.round((canvas.width - lw) / 2);
+          const y = Math.round((canvas.height - lh) / 2);
+
+          const padding = Math.round(lw * 0.12);
+          ctx.fillStyle = bgColor;
+          ctx.beginPath();
+          ctx.roundRect(x - padding, y - padding, lw + padding * 2, lh + padding * 2, padding / 2);
+          ctx.fill();
+
+          ctx.drawImage(logoImg, x, y, lw, lh);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        logoImg.onerror = reject;
+        logoImg.src = logoSrc;
+      };
+      qrImg.onerror = reject;
+      qrImg.src = qrDataUrl;
+    });
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Logo muito grande", description: "Máximo de 2MB.", variant: "destructive" });
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Arquivo inválido", description: "Selecione uma imagem.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoImage(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    setLogoImage(null);
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  };
+
   const handleGenerate = async () => {
     if (!selectedImage || !imagePreview) {
       toast({ title: "Erro", description: "Selecione uma imagem primeiro.", variant: "destructive" });
