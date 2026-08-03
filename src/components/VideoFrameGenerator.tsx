@@ -137,16 +137,16 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
     const stylePrompt = getStylePrompt(style);
 
     try {
-      for (let i = 0; i < frameCount; i++) {
+      for (let i = 0; i < keyframes; i++) {
         const frameNumber = i + 1;
-        const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, continuous cinematic shot, moment ${frameNumber} of ${frameCount} in one uninterrupted take, same characters, same location, same lighting and color grading, seamless progression`;
+        const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, continuous cinematic shot, moment ${frameNumber} of ${keyframes} in one uninterrupted take, same characters, same location, same lighting and color grading, seamless progression`;
 
         const imageUrl = await generateImage(framePrompt);
 
         if (imageUrl) {
           generatedFrames.push(imageUrl);
           setFrames([...generatedFrames]);
-          setProgress(((i + 1) / frameCount) * 100);
+          setProgress(((i + 1) / keyframes) * 100);
         }
       }
 
@@ -227,30 +227,31 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           </div>
         </motion.div>
 
-        {/* Frame Count */}
+        {/* Duração do vídeo */}
         <motion.div
           className="glass-panel-premium p-5"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          <h4 className="text-sm font-medium mb-3">Quantidade de cenas</h4>
+          <h4 className="text-sm font-medium mb-3">Duração do vídeo</h4>
           <div className="grid grid-cols-4 gap-2">
-            {frameOptions.map((count) => (
+            {durationOptions.map((secs) => (
               <button
-                key={count}
-                onClick={() => setFrameCount(count)}
+                key={secs}
+                onClick={() => setDuration(secs)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  frameCount === count
+                  duration === secs
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "bg-muted/50 hover:bg-muted"
                 }`}
               >
-                {count}
+                {secs}s
               </button>
             ))}
           </div>
         </motion.div>
+
 
         {/* Style */}
         <motion.div
