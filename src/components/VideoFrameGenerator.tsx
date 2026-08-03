@@ -131,7 +131,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
     try {
       for (let i = 0; i < frameCount; i++) {
         const frameNumber = i + 1;
-        const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, frame ${frameNumber} of ${frameCount}, cinematic sequence, consistent style`;
+        const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, continuous cinematic shot, moment ${frameNumber} of ${frameCount} in one uninterrupted take, same characters, same location, same lighting and color grading, seamless progression`;
 
         const imageUrl = await generateImage(framePrompt);
 
@@ -163,30 +163,12 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
     }
   };
 
-  const handleDownloadFrame = (url: string, index: number) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `frame-${index + 1}.png`;
-    link.target = "_blank";
-    link.click();
-  };
-
   const handleDownloadVideo = () => {
     if (!videoUrl) return;
     const link = document.createElement("a");
     link.href = videoUrl;
     link.download = `video-${Date.now()}.${videoExt}`;
     link.click();
-  };
-
-  const handleDownloadAll = async () => {
-    frames.forEach((url, i) => {
-      setTimeout(() => handleDownloadFrame(url, i), i * 500);
-    });
-    toast({
-      title: "Download iniciado",
-      description: "Todos os frames estão sendo baixados.",
-    });
   };
 
   return (
@@ -244,7 +226,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          <h4 className="text-sm font-medium mb-3">Quantidade de frames</h4>
+          <h4 className="text-sm font-medium mb-3">Quantidade de cenas</h4>
           <div className="grid grid-cols-4 gap-2">
             {frameOptions.map((count) => (
               <button
@@ -398,59 +380,6 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         )}
       </AnimatePresence>
 
-      {/* Results Grid */}
-      <AnimatePresence>
-        {frames.length > 0 && (
-          <motion.div
-            className="glass-panel-premium p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-semibold">Cenas do vídeo</h3>
-              {frames.length > 1 && (
-                <Button variant="outline" size="sm" onClick={handleDownloadAll} className="gap-2">
-                  <Download className="w-4 h-4" /> Baixar Todos
-                </Button>
-              )}
-            </div>
-
-            <div className={`grid gap-4 ${
-              aspectRatio === "9:16" ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2 sm:grid-cols-3"
-            }`}>
-              {frames.map((url, i) => (
-                <motion.div
-                  key={i}
-                  className="relative group rounded-xl overflow-hidden border border-border/50"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <img
-                    src={url}
-                    alt={`Frame ${i + 1}`}
-                    className="w-full h-auto"
-                  />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleDownloadFrame(url, i)}
-                      className="gap-2"
-                    >
-                      <Download className="w-4 h-4" /> Frame {i + 1}
-                    </Button>
-                  </div>
-                  <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/60 text-white text-xs font-medium">
-                    {i + 1}/{frameCount}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
