@@ -67,17 +67,20 @@ const getStylePrompt = (style: StyleOption): string => {
 const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
-  const [frameCount, setFrameCount] = useState<FrameCount>(4);
+  const [duration, setDuration] = useState(10);
   const [style, setStyle] = useState<StyleOption>("livre");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [frames, setFrames] = useState<string[]>([]);
-  const [secondsPerFrame, setSecondsPerFrame] = useState(1.5);
   const [isRendering, setIsRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoExt, setVideoExt] = useState<"mp4" | "webm">("mp4");
   const { toast } = useToast();
+
+  const keyframes = keyframesForDuration(duration);
+  const secondsPerFrame = duration / keyframes;
+
 
   const buildVideo = async (frameUrls: string[]) => {
     const dimensions = getDimensions(aspectRatio);
