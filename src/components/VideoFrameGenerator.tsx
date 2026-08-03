@@ -13,8 +13,11 @@ interface VideoFrameGeneratorProps {
 }
 
 type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3";
-type FrameCount = 4 | 6 | 8 | 12;
 type StyleOption = "livre" | "anime" | "cartoon" | "hq" | "caricatura" | "lego" | "adesivo" | "avatar";
+
+/** Duração total do vídeo (segundos) → nº de imagens-chave usadas internamente. */
+const keyframesForDuration = (seconds: number) =>
+  Math.min(12, Math.max(3, Math.round(seconds / 2.5)));
 
 const aspectOptions: { value: AspectRatio; label: string }[] = [
   { value: "16:9", label: "16:9 (Paisagem)" },
