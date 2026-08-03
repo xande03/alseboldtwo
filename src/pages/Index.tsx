@@ -95,7 +95,7 @@ const Index = () => {
     converter: "Conversor de Documentos",
     summarizer: "Resumidor de Texto",
     signature: "Assinatura Digital",
-    videoframes: "Gerador de Frames",
+    videoframes: "Gerador de Vídeo",
     gallery: "Galeria",
   };
 
