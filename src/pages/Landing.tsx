@@ -77,7 +77,7 @@ const Landing = () => {
       </motion.div>
 
       {/* Nav */}
-      <nav className="fixed top-0 inset-x-0 z-50 border-b border-border/30 bg-background/70 backdrop-blur-2xl">
+      <nav className="fixed top-0 inset-x-0 z-50 border-b border-border/30 bg-background/70 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/pwa-icon-192.png" alt="Alse Bold" className="w-9 h-9 rounded-xl shadow-sm" />
@@ -101,7 +101,7 @@ const Landing = () => {
       <section className="pt-28 pb-16 sm:pt-36 sm:pb-24 relative z-10">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-8 backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-8 backdrop-blur-[2px]">
               <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
             </span>
           </motion.div>
@@ -127,7 +127,7 @@ const Landing = () => {
             <Button size="lg" onClick={() => navigate("/app")} className="text-base px-8 gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow">
               Começar agora <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button size="lg" variant="outline" asChild className="text-base px-8 gap-2 border-border/50 bg-card/40 backdrop-blur-sm">
+            <Button size="lg" variant="outline" asChild className="text-base px-8 gap-2 border-border/50 bg-card/40 backdrop-blur-[2px]">
               <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
                 <Send className="w-4 h-4" /> Usar no Telegram
               </a>
@@ -146,7 +146,7 @@ const Landing = () => {
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
-                className="text-center p-5 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30"
+                className="text-center p-5 rounded-2xl bg-card/50 backdrop-blur-[2px] border border-border/30"
                 variants={fadeUp} custom={i}
               >
                 <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
@@ -169,7 +169,7 @@ const Landing = () => {
             {tools.map((tool, i) => (
               <motion.div
                 key={tool.label}
-                className="group relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-6 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_0_40px_-10px_hsl(var(--primary)/0.12)] transition-all duration-300 cursor-pointer"
+                className="group relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-[2px] p-6 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_0_40px_-10px_hsl(var(--primary)/0.12)] transition-all duration-300 cursor-pointer"
                 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
                 onClick={() => navigate("/app")}
               >
@@ -207,7 +207,7 @@ const Landing = () => {
             {techStack.map((tech, i) => (
               <motion.div
                 key={tech.name}
-                className="flex items-center gap-3 p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/30"
+                className="flex items-center gap-3 p-4 rounded-xl bg-card/50 backdrop-blur-[2px] border border-border/30"
                 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
               >
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -232,7 +232,7 @@ const Landing = () => {
             {steps.map((step, i) => (
               <motion.div
                 key={step.title}
-                className="relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30 text-center"
+                className="relative p-6 rounded-2xl bg-card/50 backdrop-blur-[2px] border border-border/30 text-center"
                 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
               >
                 <span className="font-display text-5xl font-bold text-primary/10 absolute top-4 right-5">{step.num}</span>
@@ -251,7 +251,7 @@ const Landing = () => {
       <section className="py-16 sm:py-24 relative z-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <motion.div
-            className="relative overflow-hidden rounded-3xl border border-border/30 bg-card/60 backdrop-blur-xl p-8 sm:p-12 text-center"
+            className="relative overflow-hidden rounded-3xl border border-border/30 bg-card/60 backdrop-blur-md p-8 sm:p-12 text-center"
             initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
