@@ -13,8 +13,11 @@ interface VideoFrameGeneratorProps {
 }
 
 type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3";
-type FrameCount = 4 | 6 | 8 | 12;
 type StyleOption = "livre" | "anime" | "cartoon" | "hq" | "caricatura" | "lego" | "adesivo" | "avatar";
+
+/** Duração total do vídeo (segundos) → nº de imagens-chave usadas internamente. */
+const keyframesForDuration = (seconds: number) =>
+  Math.min(12, Math.max(3, Math.round(seconds / 2.5)));
 
 const aspectOptions: { value: AspectRatio; label: string }[] = [
   { value: "16:9", label: "16:9 (Paisagem)" },
@@ -23,7 +26,9 @@ const aspectOptions: { value: AspectRatio; label: string }[] = [
   { value: "4:3", label: "4:3 (Clássico)" },
 ];
 
-const frameOptions: FrameCount[] = [4, 6, 8, 12];
+const durationOptions = [5, 10, 15, 20];
+
+
 
 const styleOptions: { value: StyleOption; label: string }[] = [
   { value: "livre", label: "Livre" },
@@ -62,17 +67,20 @@ const getStylePrompt = (style: StyleOption): string => {
 const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
-  const [frameCount, setFrameCount] = useState<FrameCount>(4);
+  const [duration, setDuration] = useState(10);
   const [style, setStyle] = useState<StyleOption>("livre");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [frames, setFrames] = useState<string[]>([]);
-  const [secondsPerFrame, setSecondsPerFrame] = useState(1.5);
   const [isRendering, setIsRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoExt, setVideoExt] = useState<"mp4" | "webm">("mp4");
   const { toast } = useToast();
+
+  const keyframes = keyframesForDuration(duration);
+  const secondsPerFrame = duration / keyframes;
+
 
   const buildVideo = async (frameUrls: string[]) => {
     const dimensions = getDimensions(aspectRatio);
@@ -129,16 +137,16 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
     const stylePrompt = getStylePrompt(style);
 
     try {
-      for (let i = 0; i < frameCount; i++) {
+      for (let i = 0; i < keyframes; i++) {
         const frameNumber = i + 1;
-        const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, continuous cinematic shot, moment ${frameNumber} of ${frameCount} in one uninterrupted take, same characters, same location, same lighting and color grading, seamless progression`;
+        const framePrompt = `${prompt}${stylePrompt ? `, ${stylePrompt}` : ""}, continuous cinematic shot, moment ${frameNumber} of ${keyframes} in one uninterrupted take, same characters, same location, same lighting and color grading, seamless progression`;
 
         const imageUrl = await generateImage(framePrompt);
 
         if (imageUrl) {
           generatedFrames.push(imageUrl);
           setFrames([...generatedFrames]);
-          setProgress(((i + 1) / frameCount) * 100);
+          setProgress(((i + 1) / keyframes) * 100);
         }
       }
 
@@ -219,30 +227,31 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           </div>
         </motion.div>
 
-        {/* Frame Count */}
+        {/* Duração do vídeo */}
         <motion.div
           className="glass-panel-premium p-5"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          <h4 className="text-sm font-medium mb-3">Quantidade de cenas</h4>
+          <h4 className="text-sm font-medium mb-3">Duração do vídeo</h4>
           <div className="grid grid-cols-4 gap-2">
-            {frameOptions.map((count) => (
+            {durationOptions.map((secs) => (
               <button
-                key={count}
-                onClick={() => setFrameCount(count)}
+                key={secs}
+                onClick={() => setDuration(secs)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  frameCount === count
+                  duration === secs
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "bg-muted/50 hover:bg-muted"
                 }`}
               >
-                {count}
+                {secs}s
               </button>
             ))}
           </div>
         </motion.div>
+
 
         {/* Style */}
         <motion.div
@@ -266,29 +275,16 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         </motion.div>
       </div>
 
-      {/* Duration per scene */}
       <motion.div
-        className="glass-panel-premium p-5"
+        className="glass-panel-premium p-4 text-xs text-muted-foreground"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22 }}
       >
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium">Duração de cada cena</h4>
-          <span className="text-xs text-muted-foreground">
-            {secondsPerFrame.toFixed(1)}s · vídeo de ~{(secondsPerFrame * frameCount).toFixed(1)}s
-          </span>
-        </div>
-        <input
-          type="range"
-          min={0.5}
-          max={4}
-          step={0.5}
-          value={secondsPerFrame}
-          onChange={(e) => setSecondsPerFrame(Number(e.target.value))}
-          className="w-full accent-primary"
-        />
+        Vídeo contínuo de {duration}s — movimento de câmera e dissolves constantes, sem cortes.
       </motion.div>
+
+
 
       {/* Generate Button */}
       <motion.div
@@ -304,7 +300,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           {isGenerating ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Gerando cena {frames.length + 1} de {frameCount}...
+              Gerando vídeo... {Math.round(progress)}%
             </>
           ) : isRendering ? (
             <>
@@ -314,7 +310,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           ) : (
             <>
               <Sparkles className="w-5 h-5" />
-              Gerar Vídeo ({frameCount} cenas)
+              Gerar Vídeo ({duration}s)
             </>
           )}
         </Button>
