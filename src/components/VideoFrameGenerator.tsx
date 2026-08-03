@@ -275,29 +275,16 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         </motion.div>
       </div>
 
-      {/* Duration per scene */}
       <motion.div
-        className="glass-panel-premium p-5"
+        className="glass-panel-premium p-4 text-xs text-muted-foreground"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22 }}
       >
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium">Duração de cada cena</h4>
-          <span className="text-xs text-muted-foreground">
-            {secondsPerFrame.toFixed(1)}s · vídeo de ~{(secondsPerFrame * frameCount).toFixed(1)}s
-          </span>
-        </div>
-        <input
-          type="range"
-          min={0.5}
-          max={4}
-          step={0.5}
-          value={secondsPerFrame}
-          onChange={(e) => setSecondsPerFrame(Number(e.target.value))}
-          className="w-full accent-primary"
-        />
+        Vídeo contínuo de {duration}s — movimento de câmera e dissolves constantes, sem cortes.
       </motion.div>
+
+
 
       {/* Generate Button */}
       <motion.div
