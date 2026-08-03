@@ -26,7 +26,9 @@ const aspectOptions: { value: AspectRatio; label: string }[] = [
   { value: "4:3", label: "4:3 (Clássico)" },
 ];
 
-const frameOptions: FrameCount[] = [4, 6, 8, 12];
+const durationOptions = [5, 10, 15, 20];
+
+
 
 const styleOptions: { value: StyleOption; label: string }[] = [
   { value: "livre", label: "Livre" },
