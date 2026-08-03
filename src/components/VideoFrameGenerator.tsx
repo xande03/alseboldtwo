@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Film, Sparkles, Download, Loader2, Image as ImageIcon } from "lucide-react";
+import { Film, Sparkles, Download, Loader2, Video as VideoIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateImage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import GeneratingAnimation from "@/components/GeneratingAnimation";
+import { framesToVideo } from "@/lib/videoExport";
 
 interface VideoFrameGeneratorProps {
   onResult?: (resultUrl: string, prompt: string) => void;
@@ -66,7 +67,44 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [frames, setFrames] = useState<string[]>([]);
+  const [secondsPerFrame, setSecondsPerFrame] = useState(1.5);
+  const [isRendering, setIsRendering] = useState(false);
+  const [renderProgress, setRenderProgress] = useState(0);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoExt, setVideoExt] = useState<"mp4" | "webm">("mp4");
   const { toast } = useToast();
+
+  const buildVideo = async (frameUrls: string[]) => {
+    const dimensions = getDimensions(aspectRatio);
+    setIsRendering(true);
+    setRenderProgress(0);
+    try {
+      const result = await framesToVideo(frameUrls, {
+        width: dimensions.width,
+        height: dimensions.height,
+        secondsPerFrame,
+        onProgress: setRenderProgress,
+      });
+      setVideoUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return result.url;
+      });
+      setVideoExt(result.extension);
+      toast({
+        title: "Vídeo pronto!",
+        description: `Arquivo .${result.extension} gerado com ${frameUrls.length} cenas.`,
+      });
+    } catch (err: any) {
+      console.error("Video render error:", err);
+      toast({
+        title: "Erro ao montar o vídeo",
+        description: err.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRendering(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -81,6 +119,10 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
     setIsGenerating(true);
     setProgress(0);
     setFrames([]);
+    setVideoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
 
     const generatedFrames: string[] = [];
     const dimensions = getDimensions(aspectRatio);
@@ -100,14 +142,14 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         }
       }
 
-      toast({
-        title: "Frames gerados!",
-        description: `${frameCount} frames criados com sucesso.`,
-      });
-
       // Add first frame to gallery
       if (generatedFrames[0]) {
         onResult?.(generatedFrames[0], prompt);
+      }
+
+      setIsGenerating(false);
+      if (generatedFrames.length > 0) {
+        await buildVideo(generatedFrames);
       }
     } catch (err: any) {
       console.error("Frame generation error:", err);
@@ -126,6 +168,14 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
     link.href = url;
     link.download = `frame-${index + 1}.png`;
     link.target = "_blank";
+    link.click();
+  };
+
+  const handleDownloadVideo = () => {
+    if (!videoUrl) return;
+    const link = document.createElement("a");
+    link.href = videoUrl;
+    link.download = `video-${Date.now()}.${videoExt}`;
     link.click();
   };
 
