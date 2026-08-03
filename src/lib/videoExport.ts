@@ -131,45 +131,63 @@ export async function framesToVideo(
 
   recorder.start();
 
-  const framesPerImage = Math.max(2, Math.round(secondsPerFrame * fps));
-  const fadeFrames = Math.min(Math.round(crossfade * fps), Math.floor(framesPerImage / 2));
-  const totalTicks = framesPerImage * images.length;
+  // One single continuous timeline: every moment is either a slow drift or a
+  // cross-dissolve, so there is never a frozen "frame" on screen.
   const frameDelay = 1000 / fps;
+  const segment = Math.max(0.4, secondsPerFrame); // seconds attributed to each image
+  const blend = Math.min(Math.max(crossfade, segment * 0.45), segment); // long dissolve
+  const totalSeconds = segment * images.length;
+  const totalTicks = Math.max(2, Math.round(totalSeconds * fps));
 
-  let tick = 0;
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+
   const start = performance.now();
 
-  for (let i = 0; i < images.length; i++) {
-    for (let f = 0; f < framesPerImage; f++) {
-      const progress = f / framesPerImage;
-      // subtle Ken Burns zoom for motion
-      const scale = 1.02 + progress * 0.05;
+  for (let tick = 0; tick < totalTicks; tick++) {
+    const t = (tick / totalTicks) * totalSeconds;
+    const pos = t / segment;
+    const i = Math.min(images.length - 1, Math.floor(pos));
+    const local = pos - i;
 
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
+
+    // continuous global drift so the camera never stops moving
+    const globalT = t / totalSeconds;
+    const scaleBase = 1.03 + (t / segment - i) * 0.06;
+    const drift = Math.sin(globalT * Math.PI * 2) * 0.012;
+
+    // current image always visible and moving
+    drawCover(ctx, images[i], width, height, 1, scaleBase + drift);
+
+    // dissolve into the next one across the tail of the segment
+    const next = images[i + 1];
+    if (next) {
+      const fadeStart = 1 - blend / segment;
+      if (local >= fadeStart) {
+        const a = smooth(Math.min(1, (local - fadeStart) / (1 - fadeStart)));
+        drawCover(ctx, next, width, height, a, 1.09 - a * 0.06 + drift);
+      }
+    }
+
+    // gentle fade in / out at the very edges of the clip
+    const edge = Math.min(0.35, totalSeconds * 0.08);
+    if (t < edge || t > totalSeconds - edge) {
+      const a = t < edge ? 1 - t / edge : 1 - (totalSeconds - t) / edge;
+      ctx.globalAlpha = Math.max(0, Math.min(1, a));
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, width, height);
-
-      if (f < fadeFrames && i > 0) {
-        const t = f / fadeFrames;
-        drawCover(ctx, images[i - 1], width, height, 1, 1.07);
-        drawCover(ctx, images[i], width, height, t, scale);
-      } else if (i === 0 && f < fadeFrames) {
-        drawCover(ctx, images[i], width, height, f / fadeFrames, scale);
-      } else if (i === images.length - 1 && f > framesPerImage - fadeFrames) {
-        const t = (framesPerImage - f) / fadeFrames;
-        drawCover(ctx, images[i], width, height, Math.max(t, 0), scale);
-      } else {
-        drawCover(ctx, images[i], width, height, 1, scale);
-      }
-
-      tick++;
-      if (tick % 5 === 0) onProgress?.(25 + Math.round((tick / totalTicks) * 70));
-
-      // pace the loop to real time so the recorder captures the right duration
-      const target = start + tick * frameDelay;
-      const wait = target - performance.now();
-      await new Promise((r) => setTimeout(r, Math.max(wait, 0)));
+      ctx.globalAlpha = 1;
     }
+
+    if (tick % 5 === 0) onProgress?.(25 + Math.round((tick / totalTicks) * 70));
+
+    // pace the loop to real time so the recorder captures the right duration
+    const target = start + (tick + 1) * frameDelay;
+    const wait = target - performance.now();
+    await new Promise((r) => setTimeout(r, Math.max(wait, 0)));
   }
+
 
   recorder.stop();
   const blob = await done;
