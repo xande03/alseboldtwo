@@ -284,6 +284,30 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         </motion.div>
       </div>
 
+      {/* Duration per scene */}
+      <motion.div
+        className="glass-panel-premium p-5"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium">Duração de cada cena</h4>
+          <span className="text-xs text-muted-foreground">
+            {secondsPerFrame.toFixed(1)}s · vídeo de ~{(secondsPerFrame * frameCount).toFixed(1)}s
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0.5}
+          max={4}
+          step={0.5}
+          value={secondsPerFrame}
+          onChange={(e) => setSecondsPerFrame(Number(e.target.value))}
+          className="w-full accent-primary"
+        />
+      </motion.div>
+
       {/* Generate Button */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -292,18 +316,23 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
       >
         <Button
           onClick={handleGenerate}
-          disabled={!prompt.trim() || isGenerating}
+          disabled={!prompt.trim() || isGenerating || isRendering}
           className="w-full h-12 text-base gap-2 shadow-lg shadow-primary/20"
         >
           {isGenerating ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Gerando frame {frames.length + 1} de {frameCount}...
+              Gerando cena {frames.length + 1} de {frameCount}...
+            </>
+          ) : isRendering ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Montando vídeo... {renderProgress}%
             </>
           ) : (
             <>
               <Sparkles className="w-5 h-5" />
-              Gerar {frameCount} Frames
+              Gerar Vídeo ({frameCount} cenas)
             </>
           )}
         </Button>
@@ -339,6 +368,36 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
         )}
       </AnimatePresence>
 
+      {/* Video Player */}
+      <AnimatePresence>
+        {videoUrl && (
+          <motion.div
+            className="glass-panel-premium p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold flex items-center gap-2">
+                <VideoIcon className="w-5 h-5 tool-videoframes" />
+                Vídeo gerado (.{videoExt})
+              </h3>
+              <Button size="sm" onClick={handleDownloadVideo} className="gap-2">
+                <Download className="w-4 h-4" /> Baixar vídeo
+              </Button>
+            </div>
+            <video
+              src={videoUrl}
+              controls
+              autoPlay
+              loop
+              playsInline
+              className="w-full rounded-xl border border-border/50 bg-black"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Results Grid */}
       <AnimatePresence>
         {frames.length > 0 && (
@@ -349,7 +408,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
             exit={{ opacity: 0 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-semibold">Frames Gerados</h3>
+              <h3 className="font-display font-semibold">Cenas do vídeo</h3>
               {frames.length > 1 && (
                 <Button variant="outline" size="sm" onClick={handleDownloadAll} className="gap-2">
                   <Download className="w-4 h-4" /> Baixar Todos
