@@ -300,7 +300,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           {isGenerating ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Gerando cena {frames.length + 1} de {frameCount}...
+              Gerando vídeo... {Math.round(progress)}%
             </>
           ) : isRendering ? (
             <>
@@ -310,7 +310,7 @@ const VideoFrameGenerator = ({ onResult }: VideoFrameGeneratorProps) => {
           ) : (
             <>
               <Sparkles className="w-5 h-5" />
-              Gerar Vídeo ({frameCount} cenas)
+              Gerar Vídeo ({duration}s)
             </>
           )}
         </Button>
