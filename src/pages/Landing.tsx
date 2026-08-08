@@ -101,9 +101,14 @@ const Landing = () => {
       <section className="pt-28 pb-16 sm:pt-36 sm:pb-24 relative z-10">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-8 backdrop-blur-[2px]">
-              <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
-            </span>
+            <div className="flex flex-col items-center gap-2 mb-8">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 backdrop-blur-[2px]">
+                <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
+              </span>
+              <span className="text-sm font-medium text-muted-foreground/80">
+                boa tarde
+              </span>
+            </div>
           </motion.div>
           <motion.h1
             className="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.08] mb-6"
