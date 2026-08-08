@@ -23,6 +23,8 @@ import DocumentConverter from "@/components/DocumentConverter";
 import TextSummarizer from "@/components/TextSummarizer";
 import SignatureGenerator from "@/components/SignatureGenerator";
 import VideoFrameGenerator from "@/components/VideoFrameGenerator";
+import TextSearchTool from "@/components/TextSearchTool";
+
 
 
 const pageVariants = {
@@ -97,7 +99,9 @@ const Index = () => {
     signature: "Assinatura Digital",
     videoframes: "Gerador de Vídeo",
     gallery: "Galeria",
+    search: "Localizador de Texto",
   };
+
 
   return (
     <SidebarProvider>
@@ -232,6 +236,13 @@ const Index = () => {
                   <GalleryView items={allItems} onDelete={removeItem} />
                 </motion.div>
               )}
+
+              {activeView === "search" && (
+                <motion.div key="search" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+                  <TextSearchTool />
+                </motion.div>
+              )}
+
             </AnimatePresence>
           </main>
         </div>
