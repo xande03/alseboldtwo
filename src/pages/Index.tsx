@@ -34,7 +34,7 @@ const pageVariants = {
 };
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<ToolView | "search">("upscale");
+  const [activeView, setActiveView] = useState<ToolView>("upscale");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
