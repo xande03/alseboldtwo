@@ -101,7 +101,6 @@ const Landing = () => {
           </div>
         </div>
       </nav>
-      </nav>
 
       {/* Hero */}
       <section className="pt-28 pb-16 sm:pt-36 sm:pb-24 relative z-10">
