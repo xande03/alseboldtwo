@@ -1,4 +1,4 @@
-import { ArrowUpCircle, Eraser, Sparkles, LayoutGrid, Wand2, QrCode, Music, MessageCircle, FileOutput, FileText, PenLine, Film } from "lucide-react";
+import { ArrowUpCircle, Eraser, Sparkles, LayoutGrid, Wand2, QrCode, Music, MessageCircle, FileOutput, FileText, PenLine, Film, Search } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sidebar,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
 
-export type ToolView = "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "imagetoqr" | "musicdna" | "chat" | "converter" | "summarizer" | "signature" | "videoframes" | "gallery";
+export type ToolView = "upscale" | "bgremove" | "generate" | "edit" | "qrcode" | "imagetoqr" | "musicdna" | "chat" | "converter" | "summarizer" | "signature" | "videoframes" | "gallery" | "search";
 
 const tools: { value: ToolView; label: string; subtitle: string; icon: typeof ArrowUpCircle; bgColor: string; iconColor: string }[] = [
   { value: "chat", label: "Chat IA", subtitle: "AI assistant", icon: MessageCircle, bgColor: "bg-indigo-500/15", iconColor: "text-indigo-500" },
@@ -24,6 +24,7 @@ const tools: { value: ToolView; label: string; subtitle: string; icon: typeof Ar
   { value: "converter", label: "Converter", subtitle: "Convert docs", icon: FileOutput, bgColor: "bg-blue-500/15", iconColor: "text-blue-500" },
   { value: "videoframes", label: "Video Studio", subtitle: "Create videos", icon: Film, bgColor: "bg-red-500/15", iconColor: "text-red-500" },
   { value: "summarizer", label: "Resumidor IA", subtitle: "Resuma textos", icon: FileText, bgColor: "bg-violet-500/15", iconColor: "text-violet-500" },
+  { value: "search", label: "Localizador", subtitle: "Busca de texto", icon: Search, bgColor: "bg-slate-500/15", iconColor: "text-slate-500" },
   { value: "signature", label: "Assinatura", subtitle: "Assinatura digital", icon: PenLine, bgColor: "bg-teal-500/15", iconColor: "text-teal-500" },
   { value: "qrcode", label: "QR Code", subtitle: "Generate QR", icon: QrCode, bgColor: "bg-amber-500/15", iconColor: "text-amber-500" },
   { value: "imagetoqr", label: "Imagem→QR", subtitle: "Image to QR", icon: QrCode, bgColor: "bg-orange-500/15", iconColor: "text-orange-500" },
