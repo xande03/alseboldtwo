@@ -59,7 +59,7 @@ const TextSearchTool = () => {
           <Input 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Ex: 'boa tarde', 'Alse Bold', 'IA'..."
+            placeholder="Ex: 'boa noite', 'Alse Bold', 'IA'..."
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             className="flex-1"
           />
