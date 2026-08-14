@@ -85,7 +85,7 @@ const Landing = () => {
           </div>
           <div className="flex items-center gap-4">
             <span className="hidden md:inline-flex text-xs font-medium text-muted-foreground/60 tracking-wider uppercase">
-              boa tarde
+              boa noite
             </span>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -111,7 +111,7 @@ const Landing = () => {
                 <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
               </span>
               <span className="text-sm font-medium text-muted-foreground/80">
-                boa tarde
+                boa noite
               </span>
             </div>
           </motion.div>
