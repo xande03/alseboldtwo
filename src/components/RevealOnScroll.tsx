@@ -1,69 +1,41 @@
-import React from 'react';
-import { useRevealOnScroll } from '@/hooks/use-parallax';
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
 interface RevealOnScrollProps {
-  children: React.ReactNode;
-  threshold?: number;
-  className?: string;
+  children: ReactNode;
   delay?: number;
+  duration?: number;
   direction?: 'up' | 'down' | 'left' | 'right';
+  distance?: number;
 }
 
-export const RevealOnScroll: React.FC<RevealOnScrollProps> = ({
-  children,
-  threshold = 0.1,
-  className = '',
-  delay = 0,
+export const RevealOnScroll = ({ 
+  children, 
+  delay = 0, 
+  duration = 0.6,
   direction = 'up',
-}) => {
-  const { ref, isVisible } = useRevealOnScroll(threshold);
-
-  const getTransform = () => {
-    if (!isVisible) return '';
-    
-    switch (direction) {
-      case 'up':
-        return 'translateY(0)';
-      case 'down':
-        return 'translateY(0)';
-      case 'left':
-        return 'translateX(0)';
-      case 'right':
-        return 'translateX(0)';
-      default:
-        return 'translateY(0)';
-    }
+  distance = 30
+}: RevealOnScrollProps) => {
+  const initial = {
+    opacity: 0,
+    y: direction === 'up' ? distance : direction === 'down' ? -distance : 0,
+    x: direction === 'left' ? distance : direction === 'right' ? -distance : 0,
   };
 
-  const getInitialTransform = () => {
-    if (isVisible) return '';
-    
-    switch (direction) {
-      case 'up':
-        return 'translateY(50px)';
-      case 'down':
-        return 'translateY(-50px)';
-      case 'left':
-        return 'translateX(50px)';
-      case 'right':
-        return 'translateX(-50px)';
-      default:
-        return 'translateY(50px)';
-    }
+  const animate = {
+    opacity: 1,
+    y: 0,
+    x: 0,
   };
 
   return (
-    <div
-      ref={ref}
-      className={`${className} transition-all duration-700 ease-out ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
-      style={{
-        transform: isVisible ? getTransform() : getInitialTransform(),
-        transitionDelay: `${delay}ms`,
-      }}
+    <motion.div
+      initial={initial}
+      whileInView={animate}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration, delay, ease: [0.25, 0.1, 0.25, 1] as const }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
