@@ -296,18 +296,6 @@ const Landing = () => {
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
             <div className="absolute inset-0 bg-background/10" />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/70" />
-            <div className="relative m-6 sm:m-10 max-w-xl text-center rounded-2xl border border-white/30 bg-white/15 backdrop-blur-md px-6 py-10 sm:px-10 shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.3)]">
-              <h2 className="font-display text-3xl sm:text-4xl font-bold mb-4">
-                O <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Alse</span> está no nome
-              </h2>
-              <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-6 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
-                Alse Bold nasce do Alse (Alosa alosa), o sável — um peixe veloz e resiliente que percorre milhares de quilômetros para concluir sua jornada. Assim como ele, nossas ferramentas seguem em movimento constante para levar suas ideias até o fim.
-              </p>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-primary/25 border border-white/30 px-3 py-1.5 rounded-full">
-                <CheckCircle className="w-3.5 h-3.5" /> Inspirado na natureza
-              </span>
-            </div>
           </motion.div>
         </div>
       </section>
