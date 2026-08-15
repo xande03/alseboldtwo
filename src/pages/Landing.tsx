@@ -297,6 +297,27 @@ const Landing = () => {
             />
             <div className="absolute inset-0 bg-background/10" />
           </motion.div>
+
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <motion.blockquote
+              className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-6"
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            >
+              <p className="text-base leading-relaxed text-foreground/90">
+                "A persistência é o caminho do êxito. Quem não desiste, cresce e inspira — cada passo dado contra a correnteza aproxima você do destino."
+              </p>
+              <footer className="mt-3 text-xs text-muted-foreground">Lição de vida do Alse</footer>
+            </motion.blockquote>
+            <motion.blockquote
+              className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-6"
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            >
+              <p className="text-base leading-relaxed text-foreground/90">
+                "Nossa maior glória não está em nunca cair, mas em levantar toda vez que caímos — a força vem da resiliência, não da ausência de obstáculos."
+              </p>
+              <footer className="mt-3 text-xs text-muted-foreground">Inspirado em Confúcio</footer>
+            </motion.blockquote>
+          </div>
         </div>
       </section>
 
