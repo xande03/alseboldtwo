@@ -112,6 +112,9 @@ const Landing = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex flex-col items-center gap-2 mb-8">
+              <span className="text-sm font-display font-medium text-primary/80 uppercase tracking-widest animate-pulse mb-2">
+                boa noite
+              </span>
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm">
                 <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
               </span>
