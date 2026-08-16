@@ -93,16 +93,21 @@ const Landing = () => {
             <img src="/pwa-icon-192.png" alt="Alse Bold" className="w-9 h-9 rounded-xl shadow-sm" />
             <span className="font-display text-xl font-bold tracking-tight">Alse Bold</span>
           </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={() => navigate("/app")} className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
-              Web App
-            </Button>
-            <Button size="sm" asChild className="gap-1.5 shadow-md shadow-primary/20">
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
-                <Send className="w-3.5 h-3.5" /> Telegram
-              </a>
-            </Button>
+          <div className="flex items-center gap-4">
+            <span className="hidden md:inline-block text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mr-2">
+              boa noite
+            </span>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="ghost" size="sm" onClick={() => navigate("/app")} className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
+                Web App
+              </Button>
+              <Button size="sm" asChild className="gap-1.5 shadow-md shadow-primary/20">
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+                  <Send className="w-3.5 h-3.5" /> Telegram
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -112,6 +117,9 @@ const Landing = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex flex-col items-center gap-2 mb-8">
+              <span className="text-sm font-display font-medium text-primary/80 uppercase tracking-widest animate-pulse mb-2">
+                boa noite
+              </span>
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm">
                 <Zap className="w-3.5 h-3.5" /> 12 ferramentas de IA • 100% gratuito
               </span>
