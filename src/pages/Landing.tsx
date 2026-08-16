@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import {
   ArrowUpCircle, Eraser, Sparkles, Wand2, QrCode, Music,
-  MessageCircle, FileOutput, ArrowRight, Send,
+  MessageCircle, FileOutput, ArrowRight, Send, ArrowDown,
   Zap, Upload, Download, Star, Shield, Clock, Users,
   CheckCircle, Image, FileText, PenLine, Film
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import alseHeroBg from "@/assets/alse-hero-bg.jpg";
@@ -57,7 +59,9 @@ const fadeUp = {
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
   const bgY = useTransform(scrollY, [0, 1200], [0, 200]);
   const bgOpacity = useTransform(scrollY, [0, 600], [0.55, 0.2]);
   const bgScale = useTransform(scrollY, [0, 800], [1, 1.12]);
@@ -78,7 +82,12 @@ const Landing = () => {
       </motion.div>
 
       {/* Nav */}
-      <nav className="fixed top-0 inset-x-0 z-50 border-b border-border/30 bg-background/70 backdrop-blur-2xl">
+      <nav className={cn(
+        "fixed top-0 inset-x-0 z-50 border-b transition-all duration-300",
+        scrolled
+          ? "border-border/30 bg-background/80 backdrop-blur-2xl shadow-[0_1px_20px_-8px_hsl(var(--primary)/0.15)]"
+          : "border-transparent bg-transparent"
+      )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/pwa-icon-192.png" alt="Alse Bold" className="w-9 h-9 rounded-xl shadow-sm" />
@@ -99,7 +108,7 @@ const Landing = () => {
       </nav>
 
       {/* Hero */}
-      <section className="pt-28 pb-16 sm:pt-36 sm:pb-24 relative z-10">
+      <section className="pt-32 pb-16 sm:pt-40 sm:pb-24 relative z-10">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex flex-col items-center gap-2 mb-8">
@@ -138,6 +147,19 @@ const Landing = () => {
               </a>
             </Button>
           </motion.div>
+
+          <motion.div
+            className="mt-14 flex items-center justify-center gap-2 text-xs text-muted-foreground/70"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.8 }}
+          >
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+            >
+              <ArrowDown className="w-4 h-4" />
+            </motion.div>
+            Explore as ferramentas
+          </motion.div>
         </div>
       </section>
 
@@ -174,10 +196,11 @@ const Landing = () => {
             {tools.map((tool, i) => (
               <motion.div
                 key={tool.label}
-                className="group relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-6 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_0_40px_-10px_hsl(var(--primary)/0.12)] transition-all duration-300 cursor-pointer"
+                className="group relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-6 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_0_40px_-10px_hsl(var(--primary)/0.15)] hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
                 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
                 onClick={() => navigate("/app")}
               >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 {tool.tag && (
                   <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary">
                     {tool.tag}
@@ -188,7 +211,7 @@ const Landing = () => {
                     <tool.icon className="w-5 h-5" style={{ color: tool.color }} />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-display font-semibold text-base mb-1">{tool.label}</h3>
+                    <h3 className="font-display font-semibold text-base mb-1 group-hover:text-foreground transition-colors">{tool.label}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-2">{tool.desc}</p>
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary/70 bg-primary/5 px-2 py-0.5 rounded-full">
                       <CheckCircle className="w-3 h-3" /> {tool.tech}
@@ -286,6 +309,12 @@ const Landing = () => {
       {/* Alse Fish */}
       <section className="py-16 sm:py-24 relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <motion.div className="text-center mb-10" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-3">A inspiração por trás do nome</h2>
+            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+              O Alse (Alosa alosa) sobe rios contra a correnteza para seguir em frente — assim como suas ideias.
+            </p>
+          </motion.div>
           <motion.div
             className="relative overflow-hidden rounded-3xl min-h-[420px] flex items-center justify-center"
             initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
@@ -295,7 +324,15 @@ const Landing = () => {
               alt="O Alse (Alosa alosa)"
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-background/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 text-center">
+              <motion.div
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-card/60 text-primary border border-primary/20 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <Zap className="w-3.5 h-3.5" /> Alse Bold
+              </motion.div>
+            </div>
           </motion.div>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
