@@ -109,6 +109,7 @@ const Landing = () => {
               </Button>
             </div>
           </div>
+        </div>
       </nav>
 
       {/* Hero */}
