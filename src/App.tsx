@@ -1,34 +1,40 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { lazy, Suspense } from "react";
-import Landing from "./pages/Landing";
-const Index = lazy(() => import("./pages/Index"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import { useState, useEffect } from 'react';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/toaster';
+import { AppSidebar } from '@/components/AppSidebar';
+import { SplashScreen } from '@/components/SplashScreen';
+import { AppContent } from './AppContent';
 
-const queryClient = new QueryClient();
+function App() {
+  const [isLoading, setIsLoading] = useState(true);
 
-const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+  useEffect(() => {
+    // Simular tempo de carregamento
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
+  return (
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="flex h-screen">
+        <AppSidebar />
+        <AppContent />
         <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<div className="min-h-screen bg-background" />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/app" element={<Index />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+      </div>
+    </NextThemesProvider>
+  );
+}
 
 export default App;
