@@ -1,34 +1,38 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { lazy, Suspense } from "react";
-import Landing from "./pages/Landing";
-const Index = lazy(() => import("./pages/Index"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import React, { useState, useEffect } from 'react';
+import { Toaster } from '@/components/ui/toaster';
+import { AppSidebar } from './components/AppSidebar';
+import { ThemeToggle } from './components/ThemeToggle';
+import { SplashScreen } from './components/SplashScreen';
+import { Index } from './pages/Index';
 
-const queryClient = new QueryClient();
+function App() {
+  const [showSplash, setShowSplash] = useState(true);
 
-const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<div className="min-h-screen bg-background" />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/app" element={<Index />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+
+  return (
+    <div className="flex h-screen bg-background">
+      {showSplash ? (
+        <SplashScreen onFinish={handleSplashFinish} />
+      ) : (
+        <>
+          <AppSidebar />
+          <div className="flex-1 overflow-auto">
+            <div className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4">
+              <ThemeToggle />
+              <h1 className="text-xl font-semibold">Alse Bold</h1>
+            </div>
+            <main className="p-6">
+              <Index />
+            </main>
+          </div>
+          <Toaster />
+        </>
+      )}
+    </div>
+  );
+}
 
 export default App;
