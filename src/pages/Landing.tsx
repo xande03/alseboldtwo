@@ -181,7 +181,8 @@ const Landing = () => {
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
-                className="text-center p-5 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30"
+                                className="text-center p-5 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30 hover:-translate-y-1 transition-transform duration-300"
+                style={{ borderColor: `${stat.color}55`, boxShadow: `0 12px 28px -18px ${stat.color}` }}
                 variants={fadeUp} custom={i}
               >
                 <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
