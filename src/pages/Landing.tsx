@@ -185,8 +185,8 @@ const Landing = () => {
                 style={{ borderColor: `${stat.color}55`, boxShadow: `0 12px 28px -18px ${stat.color}` }}
                 variants={fadeUp} custom={i}
               >
-                <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
-                <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
+                                <stat.icon className="w-5 h-5 mx-auto mb-2" style={{ color: stat.color }} />
+                <div className="font-display text-2xl sm:text-3xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
                 <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
               </motion.div>
             ))}
