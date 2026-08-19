@@ -37,10 +37,10 @@ const steps = [
 ];
 
 const stats = [
-  { icon: Users, value: "12", label: "Ferramentas de IA" },
-  { icon: Star, value: "5", label: "APIs integradas" },
-  { icon: Shield, value: "100%", label: "Gratuito" },
-  { icon: Clock, value: "<5s", label: "Tempo médio" },
+  { icon: Users, value: "12", label: "Ferramentas de IA", color: "hsl(var(--tool-chat))" },
+  { icon: Star, value: "5", label: "APIs integradas", color: "hsl(var(--tool-generate))" },
+  { icon: Shield, value: "100%", label: "Gratuito", color: "hsl(var(--tool-bgremove))" },
+  { icon: Clock, value: "<5s", label: "Tempo médio", color: "hsl(var(--tool-upscale))" },
 ];
 
 const techStack = [
@@ -181,11 +181,12 @@ const Landing = () => {
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
-                className="text-center p-5 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30"
+                                className="text-center p-5 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30 hover:-translate-y-1 transition-transform duration-300"
+                style={{ borderColor: `${stat.color}55`, boxShadow: `0 12px 28px -18px ${stat.color}` }}
                 variants={fadeUp} custom={i}
               >
-                <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
-                <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
+                                <stat.icon className="w-5 h-5 mx-auto mb-2" style={{ color: stat.color }} />
+                <div className="font-display text-2xl sm:text-3xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
                 <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
               </motion.div>
             ))}
