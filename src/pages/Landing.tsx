@@ -37,10 +37,10 @@ const steps = [
 ];
 
 const stats = [
-  { icon: Users, value: "12", label: "Ferramentas de IA" },
-  { icon: Star, value: "5", label: "APIs integradas" },
-  { icon: Shield, value: "100%", label: "Gratuito" },
-  { icon: Clock, value: "<5s", label: "Tempo médio" },
+  { icon: Users, value: "12", label: "Ferramentas de IA", color: "hsl(var(--tool-chat))" },
+  { icon: Star, value: "5", label: "APIs integradas", color: "hsl(var(--tool-generate))" },
+  { icon: Shield, value: "100%", label: "Gratuito", color: "hsl(var(--tool-bgremove))" },
+  { icon: Clock, value: "<5s", label: "Tempo médio", color: "hsl(var(--tool-upscale))" },
 ];
 
 const techStack = [
